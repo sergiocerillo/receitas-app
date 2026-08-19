@@ -147,27 +147,35 @@ const Ingredients = {
     if (error) throw error;
   },
 
-  async getCustom(type) {
-    const prefs = await this._getPrefsRow();
-    return prefs[`custom_${type}`] || [];
+  // Cada item customizado é {name, group}. Dados antigos (só o nome, string
+  // solta) viram {name, group: "Outros"} automaticamente ao ler.
+  _normalizeCustom(list) {
+    return (list || []).map(item =>
+      typeof item === "string" ? { name: item, group: "Outros" } : item
+    );
   },
 
-  async addCustom(type, name) {
+  async getCustom(type) {
+    const prefs = await this._getPrefsRow();
+    return this._normalizeCustom(prefs[`custom_${type}`]);
+  },
+
+  async addCustom(type, name, group = "Outros") {
     name = name.trim();
     if (!name) return false;
     const prefs = await this._getPrefsRow();
     const base = type === "food" ? FOOD_INGREDIENTS : DRINK_INGREDIENTS;
-    const custom = prefs[`custom_${type}`] || [];
+    const custom = this._normalizeCustom(prefs[`custom_${type}`]);
     const exists = base.some(i => i.toLowerCase() === name.toLowerCase()) ||
-      custom.some(i => i.toLowerCase() === name.toLowerCase());
+      custom.some(i => i.name.toLowerCase() === name.toLowerCase());
     if (exists) return false;
-    await this._savePrefsRow({ [`custom_${type}`]: [...custom, name] });
+    await this._savePrefsRow({ [`custom_${type}`]: [...custom, { name, group }] });
     return true;
   },
 
   async removeCustom(type, name) {
     const prefs = await this._getPrefsRow();
-    const custom = (prefs[`custom_${type}`] || []).filter(i => i !== name);
+    const custom = this._normalizeCustom(prefs[`custom_${type}`]).filter(i => i.name !== name);
     await this._savePrefsRow({ [`custom_${type}`]: custom });
   },
 
@@ -192,7 +200,7 @@ const Ingredients = {
 
   async remove(type, name) {
     const custom = await this.getCustom(type);
-    if (custom.includes(name)) {
+    if (custom.some(i => i.name === name)) {
       await this.removeCustom(type, name);
     } else {
       await this.hideBase(type, name);
@@ -203,8 +211,8 @@ const Ingredients = {
     const base = type === "food" ? FOOD_INGREDIENTS : DRINK_INGREDIENTS;
     const prefs = await this._getPrefsRow();
     const hidden = prefs[`hidden_${type}`] || [];
-    const custom = prefs[`custom_${type}`] || [];
-    return [...base.filter(i => !hidden.includes(i)), ...custom];
+    const custom = this._normalizeCustom(prefs[`custom_${type}`]);
+    return [...base.filter(i => !hidden.includes(i)), ...custom.map(i => i.name)];
   },
 
   // Retorna o nome já cadastrado (respeitando a grafia existente) ou,
