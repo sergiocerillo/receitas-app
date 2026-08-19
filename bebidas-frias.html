@@ -5,11 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bebidas Frias - Minhas Receitas</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/svg+xml" href="images/fav.svg">
+<script src="js/theme.js"></script>
 </head>
 <body>
 
 <header class="topbar">
-  <div class="brand"><span class="brand-icon">🥗</span>Minhas Receitas</div>
+  <a href="index.html" class="brand"><img src="images/h1.svg" alt="Minhas Receitas" class="brand-logo"></a>
   <nav class="mainnav">
     <a href="index.html" data-page="index.html">Home</a>
     <a href="salgadas.html" data-page="salgadas.html">Salgadas</a>
@@ -22,7 +24,8 @@
       </div>
     </div>
     <a href="ingredientes.html" data-page="ingredientes.html">Ingredientes</a>
-    <a href="lista-compras.html" data-page="lista-compras.html">Lista de compras</a>    <button type="button" id="logout-btn" class="btn secondary small">Sair</button>
+    <a href="lista-compras.html" data-page="lista-compras.html">Lista de compras</a>    <button type="button" id="theme-toggle" class="btn secondary small" title="Tema escuro" aria-label="Mudar para tema escuro">🌙</button>
+    <button type="button" id="logout-btn" class="btn secondary small">Sair</button>
   </nav>
 </header>
 

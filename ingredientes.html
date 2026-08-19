@@ -5,11 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ingredientes - Minhas Receitas</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/svg+xml" href="images/fav.svg">
+<script src="js/theme.js"></script>
 </head>
 <body>
 
 <header class="topbar">
-  <div class="brand"><span class="brand-icon">🥗</span>Minhas Receitas</div>
+  <a href="index.html" class="brand"><img src="images/h1.svg" alt="Minhas Receitas" class="brand-logo"></a>
   <nav class="mainnav">
     <a href="index.html" data-page="index.html">Home</a>
     <a href="salgadas.html" data-page="salgadas.html">Salgadas</a>
@@ -22,7 +24,9 @@
       </div>
     </div>
     <a href="ingredientes.html" data-page="ingredientes.html">Ingredientes</a>
-    <a href="lista-compras.html" data-page="lista-compras.html">Lista de compras</a>    <button type="button" id="logout-btn" class="btn secondary small">Sair</button>
+    <a href="lista-compras.html" data-page="lista-compras.html">Lista de compras</a>
+    <button type="button" id="theme-toggle" class="btn secondary small" title="Tema escuro" aria-label="Mudar para tema escuro">🌙</button>
+    <button type="button" id="logout-btn" class="btn secondary small">Sair</button>
   </nav>
 </header>
 
@@ -31,7 +35,7 @@
     <h1>Ingredientes</h1>
     <a class="btn" href="cadastro.html">+ Cadastrar nova receita</a>
   </div>
-  <p class="picker-hint">Cadastre aqui novos ingredientes para usar nas suas receitas. Os ingredientes de comida aparecem nas receitas salgadas/doces; os de bebida, nas bebidas quentes/frias.</p>
+  <p class="picker-hint">Cadastre aqui novos ingredientes para usar nas suas receitas. Os de comida aparecem nas receitas salgadas/doces; os de bebida, nas bebidas quentes/frias.</p>
 
   <div class="ingredient-manage-grid">
     <section class="form-section">
@@ -40,15 +44,10 @@
         <input type="text" id="food-name" placeholder="Ex: Cogumelo funghi seco">
         <button type="submit" class="btn small">+ Adicionar</button>
       </form>
-
-      <h3 class="subhead">Seus ingredientes cadastrados</h3>
-      <div id="food-custom-list" class="manage-list"></div>
-
-      <h3 class="subhead">Lista padrão (vegetariana)</h3>
-      <div id="food-base-list" class="manage-list base"></div>
-
-      <h3 class="subhead">Ocultados</h3>
-      <div id="food-hidden-list" class="manage-list"></div>
+      <div class="search-box" style="margin-top:14px;">
+        <input type="text" id="food-search" placeholder="Pesquisar...">
+      </div>
+      <div id="food-list" class="manage-list base"></div>
     </section>
 
     <section class="form-section">
@@ -57,15 +56,10 @@
         <input type="text" id="drink-name" placeholder="Ex: Xarope de pistache">
         <button type="submit" class="btn small">+ Adicionar</button>
       </form>
-
-      <h3 class="subhead">Seus ingredientes cadastrados</h3>
-      <div id="drink-custom-list" class="manage-list"></div>
-
-      <h3 class="subhead">Lista padrão (cardápio de cafeteria)</h3>
-      <div id="drink-base-list" class="manage-list base"></div>
-
-      <h3 class="subhead">Ocultados</h3>
-      <div id="drink-hidden-list" class="manage-list"></div>
+      <div class="search-box" style="margin-top:14px;">
+        <input type="text" id="drink-search" placeholder="Pesquisar...">
+      </div>
+      <div id="drink-list" class="manage-list base"></div>
     </section>
   </div>
 
@@ -92,59 +86,34 @@
 <script src="js/app.js"></script>
 <script src="js/ingredients.js"></script>
 <script>
-  async function renderManage(type, customElId, baseElId) {
-    const hiddenElId = type === "food" ? "food-hidden-list" : "drink-hidden-list";
+  // Uma lista só por tipo: mistura ingredientes padrão (não ocultados) com
+  // os que você mesmo cadastrou. Excluir um ingrediente padrão só o esconde
+  // (ele nunca mais aparece, sem precisar de uma seção separada pra isso);
+  // excluir um que você cadastrou apaga de verdade.
+  async function renderList(type, listElId, searchTerm = "") {
+    const listEl = document.getElementById(listElId);
+    const all = await Ingredients.getAll(type);
+    const term = searchTerm.trim().toLowerCase();
+    const filtered = (term ? all.filter(n => n.toLowerCase().includes(term)) : all)
+      .sort((a, b) => a.localeCompare(b, "pt-BR"));
 
-    const customEl = document.getElementById(customElId);
-    const custom = await Ingredients.getCustom(type);
-    customEl.innerHTML = custom.length
-      ? custom.map(name => `
-          <div class="ingredient-item ${type === "food" && isLikelyNonVeg(name) ? "warn" : ""}">
-            <span>${escapeHTML(name)}${type === "food" && isLikelyNonVeg(name) ? ' <span class="badge">⚠️ pode não ser vegetariano</span>' : ""}</span>
-            <button type="button" class="remove-btn" data-name="${escapeHTML(name)}" data-type="${type}" title="Excluir" aria-label="Excluir ${escapeHTML(name)}">×</button>
-          </div>`).join("")
-      : `<div class="empty-list-msg">Nenhum ingrediente próprio cadastrado ainda.</div>`;
+    if (!filtered.length) {
+      listEl.innerHTML = `<div class="empty-list-msg">Nenhum ingrediente encontrado.</div>`;
+      return;
+    }
 
-    customEl.querySelectorAll(".remove-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        await Ingredients.removeCustom(btn.dataset.type, btn.dataset.name);
-        renderManage(type, customElId, baseElId);
-        showToast("Ingrediente excluído.");
-      });
-    });
-
-    const baseEl = document.getElementById(baseElId);
-    const base = type === "food" ? FOOD_INGREDIENTS : DRINK_INGREDIENTS;
-    const hidden = await Ingredients.getHidden(type);
-    const visibleBase = base.filter(name => !hidden.includes(name));
-    baseEl.innerHTML = visibleBase.map(name => `
-      <div class="ingredient-item">
-        <span>${escapeHTML(name)}</span>
-        <button type="button" class="hide-btn" data-name="${escapeHTML(name)}" data-type="${type}" title="Excluir" aria-label="Excluir ${escapeHTML(name)} da lista padrão">×</button>
+    listEl.innerHTML = filtered.map(name => `
+      <div class="ingredient-item ${type === "food" && isLikelyNonVeg(name) ? "warn" : ""}">
+        <span>${escapeHTML(name)}${type === "food" && isLikelyNonVeg(name) ? ' <span class="badge">⚠️ pode não ser vegetariano</span>' : ""}</span>
+        <button type="button" class="hide-btn" data-name="${escapeHTML(name)}" data-type="${type}" title="Excluir" aria-label="Excluir ${escapeHTML(name)}">×</button>
       </div>`).join("");
 
-    baseEl.querySelectorAll(".hide-btn").forEach(btn => {
+    listEl.querySelectorAll(".hide-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
-        await Ingredients.hideBase(btn.dataset.type, btn.dataset.name);
-        renderManage(type, customElId, baseElId);
-        showToast(`"${btn.dataset.name}" excluído da lista.`);
-      });
-    });
-
-    const hiddenEl = document.getElementById(hiddenElId);
-    hiddenEl.innerHTML = hidden.length
-      ? hidden.map(name => `
-          <div class="ingredient-item">
-            <span>${escapeHTML(name)}</span>
-            <button type="button" class="restore-btn" data-name="${escapeHTML(name)}" data-type="${type}" title="Restaurar" aria-label="Restaurar ${escapeHTML(name)}">↺</button>
-          </div>`).join("")
-      : `<div class="empty-list-msg">Nenhum ingrediente excluído da lista padrão.</div>`;
-
-    hiddenEl.querySelectorAll(".restore-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        await Ingredients.unhideBase(btn.dataset.type, btn.dataset.name);
-        renderManage(type, customElId, baseElId);
-        showToast(`"${btn.dataset.name}" restaurado.`);
+        await Ingredients.remove(btn.dataset.type, btn.dataset.name);
+        const searchInput = document.getElementById(type === "food" ? "food-search" : "drink-search");
+        renderList(type, listElId, searchInput.value);
+        showToast(`"${btn.dataset.name}" excluído.`);
       });
     });
   }
@@ -156,6 +125,9 @@
     setTimeout(() => toast.classList.remove("show"), 2600);
   }
 
+  document.getElementById("food-search").addEventListener("input", (e) => renderList("food", "food-list", e.target.value));
+  document.getElementById("drink-search").addEventListener("input", (e) => renderList("drink", "drink-list", e.target.value));
+
   document.getElementById("food-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const input = document.getElementById("food-name");
@@ -163,7 +135,7 @@
     if (!name) return;
     if (await Ingredients.addCustom("food", name)) {
       input.value = "";
-      renderManage("food", "food-custom-list", "food-base-list");
+      renderList("food", "food-list", document.getElementById("food-search").value);
       showToast(isLikelyNonVeg(name)
         ? `"${name}" cadastrado. Atenção: esse ingrediente pode não ser vegetariano.`
         : `"${name}" cadastrado.`);
@@ -179,7 +151,7 @@
     if (!name) return;
     if (await Ingredients.addCustom("drink", name)) {
       input.value = "";
-      renderManage("drink", "drink-custom-list", "drink-base-list");
+      renderList("drink", "drink-list", document.getElementById("drink-search").value);
       showToast(`"${name}" cadastrado.`);
     } else {
       showToast("Esse ingrediente já existe.");
@@ -216,12 +188,12 @@
   });
 
   (async () => {
-    showLoading("food-custom-list", "Carregando...");
-    showLoading("drink-custom-list", "Carregando...");
+    showLoading("food-list", "Carregando...");
+    showLoading("drink-list", "Carregando...");
     const user = await Auth.requireAuth();
     if (!user) return;
-    renderManage("food", "food-custom-list", "food-base-list");
-    renderManage("drink", "drink-custom-list", "drink-base-list");
+    renderList("food", "food-list");
+    renderList("drink", "drink-list");
   })();
 </script>
 </body>

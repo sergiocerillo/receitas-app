@@ -95,6 +95,7 @@ async function updateNavCounts() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   markActiveNav();
+  if (typeof initThemeToggle === "function") initThemeToggle();
   if (typeof initAuthNav === "function") await initAuthNav();
   if (typeof Storage !== "undefined") updateNavCounts();
 });

@@ -49,6 +49,9 @@
   --danger: #d64550;
   --danger-strong: #b8394a;
 
+  --toast-bg: #165823;
+  --toast-text: #ffffff;
+
   --focus-ring: #ff788d;
 
   --radius-sm: 10px;
@@ -58,6 +61,98 @@
   --elev-1: 0 1px 3px rgba(22,88,35,0.08), 0 1px 2px rgba(22,88,35,0.06);
   --elev-2: 0 3px 10px rgba(22,88,35,0.10), 0 1px 3px rgba(22,88,35,0.08);
   --elev-3: 0 10px 24px rgba(22,88,35,0.16);
+}
+
+/*
+  Dark mode — mesma paleta 60/30/10, com os papéis invertidos: o verde
+  escuro vira fundo dominante, o rosa claro vira texto, e a coral continua
+  como destaque (funciona bem em fundo escuro sem precisar mudar de cor).
+  Ativa automaticamente pela preferência do sistema, e pode ser forçado
+  manualmente via [data-theme] (ver js/theme.js e o botão 🌙/☀️ no menu).
+*/
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1F15;
+    --surface: #17291D;
+    --surface-1: #1C3122;
+    --surface-2: #24402A;
+    --surface-3: #2D4E31;
+    --outline: #2D4E31;
+    --outline-soft: #203524;
+
+    --on-bg: #FFF2F2;
+    --on-surface: #FBEAEA;
+    --on-surface-muted: #C7AFAF;
+    --on-surface-faint: #9C8686;
+
+    --primary: #FF8FA0;
+    --primary-strong: #FFA3B2;
+    --on-primary: #1B0E10;
+    --primary-container: #3A2026;
+
+    --accent: #FF9AAB;
+    --accent-strong: #FFB0BD;
+    --accent-container: #3A2026;
+    --accent-container-text: #FFAFBD;
+
+    --accent-salgada-bg: #1E3B24; --accent-salgada-text: #8FE0A0;
+    --accent-doce-bg: #3A2026;    --accent-doce-text: #FF9FB0;
+    --accent-quente-bg: #3D2229;  --accent-quente-text: #FFB0BC;
+    --accent-fria-bg: #163B31;    --accent-fria-text: #7FE8CC;
+
+    --danger: #FF6B6B;
+    --danger-strong: #FF8A8A;
+
+    --toast-bg: #FFF2F2;
+    --toast-text: #165823;
+
+    --focus-ring: #FF9AAB;
+
+    --elev-1: 0 1px 3px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.25);
+    --elev-2: 0 3px 10px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
+    --elev-3: 0 10px 24px rgba(0,0,0,0.5);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1F15;
+  --surface: #17291D;
+  --surface-1: #1C3122;
+  --surface-2: #24402A;
+  --surface-3: #2D4E31;
+  --outline: #2D4E31;
+  --outline-soft: #203524;
+
+  --on-bg: #FFF2F2;
+  --on-surface: #FBEAEA;
+  --on-surface-muted: #C7AFAF;
+  --on-surface-faint: #9C8686;
+
+  --primary: #FF8FA0;
+  --primary-strong: #FFA3B2;
+  --on-primary: #1B0E10;
+  --primary-container: #3A2026;
+
+  --accent: #FF9AAB;
+  --accent-strong: #FFB0BD;
+  --accent-container: #3A2026;
+  --accent-container-text: #FFAFBD;
+
+  --accent-salgada-bg: #1E3B24; --accent-salgada-text: #8FE0A0;
+  --accent-doce-bg: #3A2026;    --accent-doce-text: #FF9FB0;
+  --accent-quente-bg: #3D2229;  --accent-quente-text: #FFB0BC;
+  --accent-fria-bg: #163B31;    --accent-fria-text: #7FE8CC;
+
+  --danger: #FF6B6B;
+  --danger-strong: #FF8A8A;
+
+  --toast-bg: #FFF2F2;
+  --toast-text: #165823;
+
+  --focus-ring: #FF9AAB;
+
+  --elev-1: 0 1px 3px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.25);
+  --elev-2: 0 3px 10px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
+  --elev-3: 0 10px 24px rgba(0,0,0,0.5);
 }
 
 * { box-sizing: border-box; }
@@ -110,6 +205,8 @@ header.topbar {
   letter-spacing: -0.01em;
 }
 .brand-icon { font-size: 1.4rem; }
+.brand-logo { height: 34px; width: auto; display: block; }
+.login-logo { height: 96px; width: auto; display: block; margin: 0 auto 6px; }
 
 nav.mainnav {
   display: flex;
@@ -650,8 +747,8 @@ textarea { resize: vertical; min-height: 90px; }
   bottom: 28px;
   left: 50%;
   transform: translateX(-50%) translateY(20px);
-  background: var(--on-bg);
-  color: #fff;
+  background: var(--toast-bg);
+  color: var(--toast-text);
   padding: 13px 22px;
   border-radius: var(--radius-sm);
   font-size: 0.9rem;
