@@ -15,6 +15,32 @@ const Storage = {
     return data;
   },
 
+  // Envia uma foto para o bucket "recipe-photos" e retorna a URL pública
+  // (isso é o que fica salvo em recipes.photo, em vez do base64 antigo).
+  async uploadPhoto(file) {
+    const user_id = await this._userId();
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+    const path = `${user_id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await sb.storage.from("recipe-photos").upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type || undefined
+    });
+    if (error) throw error;
+    const { data } = sb.storage.from("recipe-photos").getPublicUrl(path);
+    return data.publicUrl;
+  },
+
+  // Apaga uma foto do bucket a partir da URL pública salva na receita.
+  // Best-effort: não trava a UI nem lança erro (ex: fotos antigas em base64,
+  // ou vindas de importação por link, não estão no nosso bucket — ignora).
+  deletePhoto(url) {
+    if (!url || !url.includes("/recipe-photos/")) return;
+    const path = decodeURIComponent(url.split("/recipe-photos/")[1] || "");
+    if (!path) return;
+    sb.storage.from("recipe-photos").remove([path]).catch(() => {});
+  },
+
   async save(recipe) {
     const user_id = await this._userId();
     const { data, error } = await sb.from("recipes").insert({ ...recipe, user_id }).select().single();

@@ -1,6 +1,8 @@
 let selectedIngredients = []; // {name, amount, unit}
 let currentType = null; // "food" | "drink"
-let photoDataUrl = null;
+let photoUrl = null;        // URL final (existente, importada, ou já enviada)
+let pendingPhotoFile = null; // arquivo escolhido, ainda não enviado ao Storage
+let previousPhotoUrl = null; // foto que a receita tinha antes de editar (pra apagar do Storage se trocada/removida)
 let editingId = null;
 let tags = [];
 
@@ -181,24 +183,27 @@ function initPhotoField() {
   input.addEventListener("change", () => {
     const file = input.files[0];
     if (!file) return;
+    pendingPhotoFile = file;
+    photoUrl = null; // será preenchido com a URL real após o upload, no submit
     const reader = new FileReader();
     reader.onload = () => {
-      photoDataUrl = reader.result;
-      preview.src = photoDataUrl;
+      preview.src = reader.result; // só pré-visualização local, não é o que fica salvo
       wrap.style.display = "block";
     };
     reader.readAsDataURL(file);
   });
 
   removeBtn.addEventListener("click", () => {
-    photoDataUrl = null;
+    pendingPhotoFile = null;
+    photoUrl = null;
     input.value = "";
     wrap.style.display = "none";
   });
 }
 
 function setPhotoFromUrl(url) {
-  photoDataUrl = url;
+  photoUrl = url;
+  pendingPhotoFile = null;
   const wrap = document.getElementById("photo-preview-wrap");
   const preview = document.getElementById("photo-preview");
   preview.src = url;
@@ -345,6 +350,7 @@ async function loadRecipeForEdit() {
   renderTags();
 
   if (recipe.photo) setPhotoFromUrl(recipe.photo);
+  previousPhotoUrl = recipe.photo || null;
 
   const radio = document.querySelector(`input[name="category"][value="${recipe.category}"]`);
   if (radio) {
@@ -381,20 +387,37 @@ function initForm() {
       return;
     }
 
-    const payload = {
-      title,
-      category,
-      steps,
-      notes,
-      tags,
-      photo: photoDataUrl,
-      ingredients: selectedIngredients
-    };
-
     const submitBtn = document.getElementById("submit-btn");
     submitBtn.disabled = true;
+    const submitBtnOriginalText = submitBtn.textContent;
 
     try {
+      // Se tem um arquivo de foto escolhido e ainda não enviado, sobe ele
+      // agora pro Storage e usa a URL pública retornada.
+      if (pendingPhotoFile) {
+        submitBtn.textContent = "Enviando foto...";
+        photoUrl = await Storage.uploadPhoto(pendingPhotoFile);
+        pendingPhotoFile = null;
+      }
+
+      // Em edição: se a foto mudou ou foi removida, apaga a antiga do Storage
+      // (best-effort — não trava o salvamento se falhar).
+      if (editingId && previousPhotoUrl && previousPhotoUrl !== photoUrl) {
+        Storage.deletePhoto(previousPhotoUrl);
+      }
+
+      submitBtn.textContent = submitBtnOriginalText;
+
+      const payload = {
+        title,
+        category,
+        steps,
+        notes,
+        tags,
+        photo: photoUrl,
+        ingredients: selectedIngredients
+      };
+
       if (editingId) {
         await Storage.update(editingId, payload);
         showToast("Receita atualizada!");
@@ -407,6 +430,7 @@ function initForm() {
     } catch (err) {
       showToast("Erro ao salvar: " + err.message);
       submitBtn.disabled = false;
+      submitBtn.textContent = submitBtnOriginalText;
     }
   });
 }

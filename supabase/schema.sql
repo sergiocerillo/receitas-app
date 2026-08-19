@@ -63,3 +63,22 @@ create policy "Usuários criam as próprias preferências"
 create policy "Usuários editam as próprias preferências"
   on ingredient_prefs for update
   using (auth.uid() = user_id);
+
+-- ---------- Storage: fotos das receitas ----------
+-- recipes.photo passa a guardar a URL pública do arquivo aqui, em vez do
+-- base64 embutido direto na linha (mais leve pro banco).
+insert into storage.buckets (id, name, public)
+values ('recipe-photos', 'recipe-photos', true)
+on conflict (id) do nothing;
+
+create policy "Fotos de receitas são públicas para leitura"
+  on storage.objects for select
+  using (bucket_id = 'recipe-photos');
+
+create policy "Usuários autenticados podem enviar fotos"
+  on storage.objects for insert
+  with check (bucket_id = 'recipe-photos' and auth.role() = 'authenticated');
+
+create policy "Usuários autenticados podem apagar fotos"
+  on storage.objects for delete
+  using (bucket_id = 'recipe-photos' and auth.role() = 'authenticated');
