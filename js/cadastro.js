@@ -104,7 +104,7 @@ function renderAvailableList(items) {
   el.innerHTML = items.map(name => `
     <div class="ingredient-item ${currentType === "food" && isLikelyNonVeg(name) ? "warn" : ""}" draggable="true" data-name="${escapeAttr(name)}">
       <span>${escapeHTML(name)}</span>
-      <button type="button" class="add-btn" title="Adicionar">+</button>
+      <button type="button" class="add-btn" title="Adicionar" aria-label="Adicionar ${escapeAttr(name)}">+</button>
     </div>
   `).join("");
 
@@ -136,7 +136,7 @@ function renderSelectedList() {
         <select class="unit-select" data-name="${escapeAttr(ing.name)}" data-field="unit">
           ${unitOptionsHTML(ing.unit || "")}
         </select>
-        <button type="button" class="remove-btn" title="Remover">×</button>
+        <button type="button" class="remove-btn" title="Remover" aria-label="Remover ${escapeAttr(ing.name)} da receita">×</button>
       </span>
     </div>
   `).join("");
@@ -240,7 +240,7 @@ function removeTag(name) {
 function renderTags() {
   const el = document.getElementById("tag-list");
   el.innerHTML = tags.map(t => `
-    <span class="chip">${escapeHTML(t)}<button type="button" class="chip-remove" data-tag="${escapeAttr(t)}" title="Remover tag">×</button></span>
+    <span class="chip">${escapeHTML(t)}<button type="button" class="chip-remove" data-tag="${escapeAttr(t)}" title="Remover tag" aria-label="Remover tag ${escapeAttr(t)}">×</button></span>
   `).join("");
   el.querySelectorAll(".chip-remove").forEach(btn => {
     btn.addEventListener("click", () => removeTag(btn.dataset.tag));

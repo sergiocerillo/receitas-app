@@ -10,17 +10,22 @@
 
 <main style="max-width:380px; margin:80px auto;">
   <div class="page-header" style="justify-content:center; text-align:center; flex-direction:column;">
-    <h1 style="margin-bottom:4px;">🥗 Minhas Receitas</h1>
-    <p class="picker-hint">Digite a senha de acesso para entrar.</p>
+    <h1 style="margin-bottom:4px; display:flex; align-items:center; gap:10px;">🥗 Minhas Receitas</h1>
+    <p class="picker-hint" style="margin:0;">Digite a senha de acesso para entrar.</p>
   </div>
 
-  <form id="auth-form" class="form-section">
-    <div class="field">
+  <form id="auth-form" class="form-section" novalidate>
+    <div class="field" style="margin-bottom:10px;">
       <label for="password">Senha</label>
-      <input type="password" id="password" placeholder="••••••••" required autofocus>
+      <div class="password-field">
+        <input type="password" id="password" placeholder="Digite a senha" required autofocus autocomplete="current-password" aria-describedby="auth-status">
+        <button type="button" id="toggle-password" class="toggle-visibility" aria-label="Mostrar senha" aria-pressed="false">👁</button>
+      </div>
     </div>
-    <button type="submit" class="btn" id="submit-btn" style="width:100%; justify-content:center;">Entrar</button>
-    <p id="auth-status" class="picker-hint" style="margin-top:12px; margin-bottom:0;"></p>
+    <button type="submit" class="btn" id="submit-btn" style="width:100%; justify-content:center; margin-top:14px;">
+      <span id="submit-label">Entrar</span>
+    </button>
+    <p id="auth-status" class="picker-hint" role="alert" style="margin-top:12px; margin-bottom:0; min-height:1.2em;"></p>
   </form>
 </main>
 
@@ -31,23 +36,48 @@
 <script>
   const statusEl = document.getElementById("auth-status");
   const submitBtn = document.getElementById("submit-btn");
+  const submitLabel = document.getElementById("submit-label");
+  const passwordInput = document.getElementById("password");
 
   function setStatus(msg, isError) {
     statusEl.textContent = msg;
     statusEl.style.color = isError ? "var(--danger)" : "var(--primary)";
   }
 
+  function setLoading(loading) {
+    submitBtn.disabled = loading;
+    submitLabel.innerHTML = loading
+      ? '<span class="spinner" aria-hidden="true"></span> Entrando...'
+      : "Entrar";
+  }
+
+  document.getElementById("toggle-password").addEventListener("click", (e) => {
+    const btn = e.currentTarget;
+    const showing = passwordInput.type === "text";
+    passwordInput.type = showing ? "password" : "text";
+    btn.setAttribute("aria-pressed", String(!showing));
+    btn.setAttribute("aria-label", showing ? "Mostrar senha" : "Ocultar senha");
+    btn.textContent = showing ? "👁" : "🙈";
+    passwordInput.focus();
+  });
+
   document.getElementById("auth-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const password = document.getElementById("password").value;
-    submitBtn.disabled = true;
+    const password = passwordInput.value;
+    if (!password) {
+      setStatus("Digite a senha antes de entrar.", true);
+      return;
+    }
+    setStatus("", false);
+    setLoading(true);
 
     try {
       await Auth.signInWithSitePassword(password);
       window.location.href = "index.html";
     } catch (err) {
       setStatus("Senha incorreta. Tente de novo.", true);
-      submitBtn.disabled = false;
+      setLoading(false);
+      passwordInput.select();
     }
   });
 

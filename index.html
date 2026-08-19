@@ -87,6 +87,7 @@
   });
 
   (async () => {
+    showLoading("grid", "Carregando suas receitas...");
     const user = await Auth.requireAuth();
     if (!user) return;
     refresh();

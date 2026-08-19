@@ -11,7 +11,7 @@ function recipeCardHTML(r) {
 
   return `
     <a class="recipe-card" href="receita.html?id=${r.id}">
-      <button type="button" class="favorite-btn ${r.favorite ? "active" : ""}" data-fav-id="${r.id}" title="Favoritar">${r.favorite ? "★" : "☆"}</button>
+      <button type="button" class="favorite-btn ${r.favorite ? "active" : ""}" data-fav-id="${r.id}" title="${r.favorite ? "Remover dos favoritos" : "Favoritar"}" aria-label="${r.favorite ? "Remover " + escapeHTML(r.title) + " dos favoritos" : "Favoritar " + escapeHTML(r.title)}" aria-pressed="${r.favorite ? "true" : "false"}">${r.favorite ? "★" : "☆"}</button>
       ${thumb}
       <span class="tag ${r.category}">${CATEGORY_LABELS[r.category]}</span>
       <div class="body">
@@ -33,6 +33,14 @@ function escapeHTML(str) {
   const div = document.createElement("div");
   div.textContent = str;
   return div.innerHTML;
+}
+
+// Mostra um indicador de carregamento simples — usado enquanto a página
+// aguarda a verificação de login e a primeira busca de dados no Supabase,
+// pra nunca deixar a tela em branco/silenciosa (heurística nº1 de Nielsen).
+function showLoading(containerId, label = "Carregando...") {
+  const el = document.getElementById(containerId);
+  if (el) el.innerHTML = `<div class="page-loading"><span class="spinner" aria-hidden="true"></span> ${escapeHTML(label)}</div>`;
 }
 
 // `onFavoriteToggle`, se passado, é chamado (pode ser async) depois de

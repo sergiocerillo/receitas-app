@@ -101,7 +101,7 @@
       ? custom.map(name => `
           <div class="ingredient-item ${type === "food" && isLikelyNonVeg(name) ? "warn" : ""}">
             <span>${escapeHTML(name)}${type === "food" && isLikelyNonVeg(name) ? ' <span class="badge">⚠️ pode não ser vegetariano</span>' : ""}</span>
-            <button type="button" class="remove-btn" data-name="${escapeHTML(name)}" data-type="${type}" title="Excluir">×</button>
+            <button type="button" class="remove-btn" data-name="${escapeHTML(name)}" data-type="${type}" title="Excluir" aria-label="Excluir ${escapeHTML(name)}">×</button>
           </div>`).join("")
       : `<div class="empty-list-msg">Nenhum ingrediente próprio cadastrado ainda.</div>`;
 
@@ -120,7 +120,7 @@
     baseEl.innerHTML = visibleBase.map(name => `
       <div class="ingredient-item">
         <span>${escapeHTML(name)}</span>
-        <button type="button" class="hide-btn" data-name="${escapeHTML(name)}" data-type="${type}" title="Excluir">×</button>
+        <button type="button" class="hide-btn" data-name="${escapeHTML(name)}" data-type="${type}" title="Excluir" aria-label="Excluir ${escapeHTML(name)} da lista padrão">×</button>
       </div>`).join("");
 
     baseEl.querySelectorAll(".hide-btn").forEach(btn => {
@@ -136,7 +136,7 @@
       ? hidden.map(name => `
           <div class="ingredient-item">
             <span>${escapeHTML(name)}</span>
-            <button type="button" class="restore-btn" data-name="${escapeHTML(name)}" data-type="${type}" title="Restaurar">↺</button>
+            <button type="button" class="restore-btn" data-name="${escapeHTML(name)}" data-type="${type}" title="Restaurar" aria-label="Restaurar ${escapeHTML(name)}">↺</button>
           </div>`).join("")
       : `<div class="empty-list-msg">Nenhum ingrediente excluído da lista padrão.</div>`;
 
@@ -216,6 +216,8 @@
   });
 
   (async () => {
+    showLoading("food-custom-list", "Carregando...");
+    showLoading("drink-custom-list", "Carregando...");
     const user = await Auth.requireAuth();
     if (!user) return;
     renderManage("food", "food-custom-list", "food-base-list");

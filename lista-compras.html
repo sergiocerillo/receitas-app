@@ -96,6 +96,7 @@
   });
 
   (async () => {
+    showLoading("recipe-select", "Carregando suas receitas...");
     const user = await Auth.requireAuth();
     if (!user) return;
 
