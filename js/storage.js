@@ -135,7 +135,10 @@ const Ingredients = {
     if (error) throw error;
     if (data) return data;
 
-    const defaults = { user_id, custom_food: [], custom_drink: [], hidden_food: [], hidden_drink: [] };
+    const defaults = {
+      user_id, custom_food: [], custom_drink: [], hidden_food: [], hidden_drink: [],
+      custom_food_groups: [], custom_drink_groups: []
+    };
     const { data: created, error: insertError } = await sb.from("ingredient_prefs").insert(defaults).select().single();
     if (insertError) throw insertError;
     return created;
@@ -213,6 +216,25 @@ const Ingredients = {
     const hidden = prefs[`hidden_${type}`] || [];
     const custom = this._normalizeCustom(prefs[`custom_${type}`]);
     return [...base.filter(i => !hidden.includes(i)), ...custom.map(i => i.name)];
+  },
+
+  // Categorias extras criadas pelo usuário, além das já embutidas em
+  // FOOD_INGREDIENT_GROUPS / DRINK_INGREDIENT_GROUPS.
+  async getCustomGroups(type) {
+    const prefs = await this._getPrefsRow();
+    return prefs[`custom_${type}_groups`] || [];
+  },
+
+  async addCustomGroup(type, name) {
+    name = name.trim();
+    if (!name) return false;
+    const baseGroups = Object.keys(type === "food" ? FOOD_INGREDIENT_GROUPS : DRINK_INGREDIENT_GROUPS);
+    const prefs = await this._getPrefsRow();
+    const customGroups = prefs[`custom_${type}_groups`] || [];
+    const exists = [...baseGroups, ...customGroups, "Outros"].some(g => g.toLowerCase() === name.toLowerCase());
+    if (exists) return false;
+    await this._savePrefsRow({ [`custom_${type}_groups`]: [...customGroups, name] });
+    return true;
   },
 
   // Retorna o nome já cadastrado (respeitando a grafia existente) ou,

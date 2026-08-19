@@ -6,11 +6,16 @@
 <title>Entrar - Minhas Receitas</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="icon" type="image/svg+xml" href="images/fav.svg">
-<script src="js/theme.js"></script>
+<script>
+  // O dark mode só existe dentro da aplicação — o login sempre fica claro,
+  // independente do tema salvo ou da preferência do sistema.
+  document.documentElement.setAttribute("data-theme", "light");
+</script>
 </head>
 <body>
 
-<main style="max-width:380px; margin:80px auto;">
+<main class="login-screen">
+  <div style="max-width:380px; width:100%;">
   <div class="page-header" style="justify-content:center; text-align:center; flex-direction:column;">
     <img src="images/login.svg" alt="Minhas Receitas" class="login-logo">
     <p class="picker-hint" style="margin:0;">Digite a senha de acesso para entrar.</p>
@@ -29,6 +34,7 @@
     </button>
     <p id="auth-status" class="picker-hint" role="alert" style="margin-top:12px; margin-bottom:0; min-height:1.2em;"></p>
   </form>
+  </div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

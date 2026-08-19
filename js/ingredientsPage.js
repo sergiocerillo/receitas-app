@@ -20,23 +20,68 @@ function showToast(msg) {
   showToast._t = setTimeout(() => toast.classList.remove("show"), 2600);
 }
 
-function initIngredientsPage({ type, groups, listElId, searchElId, formElId, nameElId, groupElId }) {
+async function initIngredientsPage({ type, groups, listElId, searchElId, formElId, nameElId, groupElId }) {
   const listEl = document.getElementById(listElId);
   const searchEl = document.getElementById(searchElId);
-  const groupNames = Object.keys(groups);
-
+  const baseGroupNames = Object.keys(groups);
   const groupSelect = document.getElementById(groupElId);
-  groupSelect.innerHTML = groupNames.map(g => `<option value="${escapeHTML(g)}">${escapeHTML(g)}</option>`).join("")
-    + `<option value="Outros">Outros</option>`;
+
+  // "+ Nova categoria": botão + mini-formulário inseridos logo após o select.
+  const newGroupBtn = document.createElement("button");
+  newGroupBtn.type = "button";
+  newGroupBtn.className = "btn secondary small";
+  newGroupBtn.style.marginTop = "6px";
+  newGroupBtn.textContent = "+ Nova categoria";
+  groupSelect.insertAdjacentElement("afterend", newGroupBtn);
+
+  const newGroupWrap = document.createElement("div");
+  newGroupWrap.style.cssText = "display:none; gap:6px; margin-top:8px;";
+  newGroupWrap.innerHTML = `
+    <input type="text" placeholder="Nome da nova categoria" style="flex:1;">
+    <button type="button" class="btn small">Criar</button>
+  `;
+  newGroupBtn.insertAdjacentElement("afterend", newGroupWrap);
+  const newGroupInput = newGroupWrap.querySelector("input");
+  const newGroupConfirm = newGroupWrap.querySelector("button");
+
+  newGroupBtn.addEventListener("click", () => {
+    const showing = newGroupWrap.style.display === "flex";
+    newGroupWrap.style.display = showing ? "none" : "flex";
+    if (!showing) newGroupInput.focus();
+  });
+
+  async function refreshGroupOptions(selectValue) {
+    const customGroups = await Ingredients.getCustomGroups(type);
+    const allNames = [...baseGroupNames, ...customGroups];
+    groupSelect.innerHTML = allNames.map(g => `<option value="${escapeHTML(g)}">${escapeHTML(g)}</option>`).join("")
+      + `<option value="Outros">Outros</option>`;
+    if (selectValue) groupSelect.value = selectValue;
+    return customGroups;
+  }
+
+  newGroupConfirm.addEventListener("click", async () => {
+    const name = newGroupInput.value.trim();
+    if (!name) return;
+    if (await Ingredients.addCustomGroup(type, name)) {
+      await refreshGroupOptions(name);
+      newGroupInput.value = "";
+      newGroupWrap.style.display = "none";
+      showToast(`Categoria "${name}" criada.`);
+    } else {
+      showToast("Essa categoria já existe.");
+    }
+  });
 
   async function render(searchTerm = "") {
     const hidden = await Ingredients.getHidden(type);
     const custom = await Ingredients.getCustom(type);
+    const customGroups = await Ingredients.getCustomGroups(type);
+    const allGroupNames = [...baseGroupNames, ...customGroups];
     const term = searchTerm.trim().toLowerCase();
 
     const sections = [];
-    for (const groupName of groupNames) {
-      const baseItems = groups[groupName].filter(n => !hidden.includes(n));
+    for (const groupName of allGroupNames) {
+      const baseItems = (groups[groupName] || []).filter(n => !hidden.includes(n));
       const customItems = custom.filter(c => c.group === groupName).map(c => c.name);
       let items = [...baseItems, ...customItems];
       if (term) items = items.filter(n => n.toLowerCase().includes(term));
@@ -45,7 +90,7 @@ function initIngredientsPage({ type, groups, listElId, searchElId, formElId, nam
       }
     }
 
-    let extras = custom.filter(c => !groupNames.includes(c.group)).map(c => c.name);
+    let extras = custom.filter(c => !allGroupNames.includes(c.group)).map(c => c.name);
     if (term) extras = extras.filter(n => n.toLowerCase().includes(term));
     if (extras.length) {
       sections.push({ name: "Outros", items: [...new Set(extras)].sort((a, b) => a.localeCompare(b, "pt-BR")) });
@@ -90,6 +135,7 @@ function initIngredientsPage({ type, groups, listElId, searchElId, formElId, nam
     }
   });
 
+  await refreshGroupOptions();
   render();
 }
 

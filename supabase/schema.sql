@@ -38,12 +38,16 @@ create policy "Usuários excluem só as próprias receitas"
   using (auth.uid() = user_id);
 
 -- ---------- Preferências de ingredientes (um registro por usuário) ----------
+-- custom_food/custom_drink: [{name, group}]. custom_food_groups/custom_drink_groups:
+-- categorias extras criadas pelo usuário, além das já embutidas no app.
 create table if not exists ingredient_prefs (
   user_id uuid primary key references auth.users(id) on delete cascade,
   custom_food jsonb not null default '[]',
   custom_drink jsonb not null default '[]',
   hidden_food jsonb not null default '[]',
-  hidden_drink jsonb not null default '[]'
+  hidden_drink jsonb not null default '[]',
+  custom_food_groups jsonb not null default '[]',
+  custom_drink_groups jsonb not null default '[]'
 );
 
 alter table ingredient_prefs enable row level security;

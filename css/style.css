@@ -1,74 +1,67 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 /*
-  Paleta 60/30/10 a partir de 3 cores-base:
-    60% dominante -> #FFF2F2 (fundos, superfícies)
-    30% secundária -> #165823 (texto, navegação, ações primárias)
-    10% destaque   -> #FF788D (favoritos, indicadores, realces pontuais)
-
-  #FF788D puro não passa no contraste mínimo de texto (WCAG AA 4.5:1) contra
-  fundo branco nem com texto branco sobre ele — por isso vira só destaque
-  (ícones, bordas, indicadores), nunca fundo de botão com texto em cima.
-  Onde precisa virar "selo" (tags, chips) usamos um tom bem claro dela como
-  fundo + um tom escuro como texto, garantindo leitura confortável.
+  Paleta 60/30/10. Fundo (#FFF2F2) ficou como estava; rosa e verde vieram
+  de #E85D97 e #4ECDA0. Nenhum dos dois, puro, passa no contraste mínimo de
+  texto (WCAG AA 4.5:1) — por isso cada um gera um tom escuro (pra texto e
+  botões) e um tom claro (pra fundos de selo/badge), sempre dentro do mesmo
+  matiz da cor original.
 */
 :root {
   /* 60% — dominante */
   --bg: #FFF2F2;
   --surface: #ffffff;
   --surface-1: #fffbfb;
-  --surface-2: #ffe6ea;
-  --surface-3: #ffd3da;
-  --outline: #ffd9de;
-  --outline-soft: #ffe9ec;
+  --surface-2: #fce3ee;
+  --surface-3: #fad0e0;
+  --outline: #fad0e0;
+  --outline-soft: #fce3ee;
 
-  /* 30% — secundária (texto e navegação) */
-  --on-bg: #165823;
-  --on-surface: #1b4a28;
-  --on-surface-muted: #4c7a57;
-  --on-surface-faint: #7fa688;
+  /* 30% — verde escuro (derivado de #4ECDA0), pra texto e navegação */
+  --on-bg: #0b5c3c;
+  --on-surface: #0f6b47;
+  --on-surface-muted: #4c8a72;
+  --on-surface-faint: #7fae9a;
 
-  /* Ações primárias usam a secundária escura: contraste alto (8.6:1) com
-     texto branco, mantendo a coral livre para funcionar como destaque. */
-  --primary: #165823;
-  --primary-strong: #0f3d18;
+  --primary: #0b5c3c;
+  --primary-strong: #073d28;
   --on-primary: #ffffff;
-  --primary-container: #e1f0e5;
+  --primary-container: #dff6ec;
 
-  /* 10% — destaque coral */
-  --accent: #FF788D;
-  --accent-strong: #e85a72;
-  --accent-container: #ffe1e6;
-  --accent-container-text: #b83a52;
+  /* 10% — rosa (#E85D97), destaque */
+  --accent: #e85d97;
+  --accent-strong: #c93f7a;
+  --accent-container: #fce3ee;
+  --accent-container-text: #a32a63;
 
-  --accent-salgada-bg: #e3f0e6; --accent-salgada-text: #165823;
-  --accent-doce-bg: #ffe1e6;    --accent-doce-text: #b83a52;
-  --accent-quente-bg: #ffd0d8;  --accent-quente-text: #8c2a3f;
-  --accent-fria-bg: #dcefea;    --accent-fria-text: #0f4d3d;
+  --accent-salgada-bg: #dff6ec; --accent-salgada-text: #0b5c3c;
+  --accent-doce-bg: #fce3ee;    --accent-doce-text: #a32a63;
+  --accent-quente-bg: #fad0e0;  --accent-quente-text: #8c1f52;
+  --accent-fria-bg: #c9f2e2;    --accent-fria-text: #08402b;
 
   --danger: #d64550;
   --danger-strong: #b8394a;
 
-  --toast-bg: #165823;
+  --toast-bg: #0b5c3c;
   --toast-text: #ffffff;
 
-  --focus-ring: #ff788d;
+  --focus-ring: #e85d97;
 
   --radius-sm: 10px;
   --radius: 16px;
   --radius-lg: 22px;
 
-  --elev-1: 0 1px 3px rgba(22,88,35,0.08), 0 1px 2px rgba(22,88,35,0.06);
-  --elev-2: 0 3px 10px rgba(22,88,35,0.10), 0 1px 3px rgba(22,88,35,0.08);
-  --elev-3: 0 10px 24px rgba(22,88,35,0.16);
+  --elev-1: 0 1px 3px rgba(11,92,60,0.08), 0 1px 2px rgba(11,92,60,0.06);
+  --elev-2: 0 3px 10px rgba(11,92,60,0.10), 0 1px 3px rgba(11,92,60,0.08);
+  --elev-3: 0 10px 24px rgba(11,92,60,0.16);
 }
 
 /*
-  Dark mode — mesma paleta 60/30/10, com os papéis invertidos: o verde
-  escuro vira fundo dominante, o rosa claro vira texto, e a coral continua
-  como destaque (funciona bem em fundo escuro sem precisar mudar de cor).
-  Ativa automaticamente pela preferência do sistema, e pode ser forçado
-  manualmente via [data-theme] (ver js/theme.js e o botão 🌙/☀️ no menu).
+  Dark mode — só entra em vigor dentro da aplicação (páginas depois do
+  login; login.html força tema claro). Mesmos dois matizes, com os papéis
+  invertidos: tons claros de rosa/verde viram destaque sobre fundo escuro.
+  Ativa pela preferência do sistema, ou manualmente via [data-theme] (ver
+  js/theme.js e o botão 🌙/☀️ no menu).
 */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -85,28 +78,28 @@
     --on-surface-muted: #C7AFAF;
     --on-surface-faint: #9C8686;
 
-    --primary: #FF8FA0;
-    --primary-strong: #FFA3B2;
-    --on-primary: #1B0E10;
-    --primary-container: #3A2026;
+    --primary: #f48fbd;
+    --primary-strong: #f7a6cc;
+    --on-primary: #1b0e10;
+    --primary-container: #3a2030;
 
-    --accent: #FF9AAB;
-    --accent-strong: #FFB0BD;
-    --accent-container: #3A2026;
-    --accent-container-text: #FFAFBD;
+    --accent: #f49bc2;
+    --accent-strong: #f7b3d3;
+    --accent-container: #3a2030;
+    --accent-container-text: #ffc7e0;
 
-    --accent-salgada-bg: #1E3B24; --accent-salgada-text: #8FE0A0;
-    --accent-doce-bg: #3A2026;    --accent-doce-text: #FF9FB0;
-    --accent-quente-bg: #3D2229;  --accent-quente-text: #FFB0BC;
-    --accent-fria-bg: #163B31;    --accent-fria-text: #7FE8CC;
+    --accent-salgada-bg: #1b3b2c; --accent-salgada-text: #8fe8c4;
+    --accent-doce-bg: #3a2030;    --accent-doce-text: #ffa8ce;
+    --accent-quente-bg: #3d2230;  --accent-quente-text: #ffb3d0;
+    --accent-fria-bg: #143b2f;    --accent-fria-text: #7fe8c4;
 
     --danger: #FF6B6B;
     --danger-strong: #FF8A8A;
 
     --toast-bg: #FFF2F2;
-    --toast-text: #165823;
+    --toast-text: #0b5c3c;
 
-    --focus-ring: #FF9AAB;
+    --focus-ring: #f49bc2;
 
     --elev-1: 0 1px 3px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.25);
     --elev-2: 0 3px 10px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
@@ -127,28 +120,28 @@
   --on-surface-muted: #C7AFAF;
   --on-surface-faint: #9C8686;
 
-  --primary: #FF8FA0;
-  --primary-strong: #FFA3B2;
-  --on-primary: #1B0E10;
-  --primary-container: #3A2026;
+  --primary: #f48fbd;
+  --primary-strong: #f7a6cc;
+  --on-primary: #1b0e10;
+  --primary-container: #3a2030;
 
-  --accent: #FF9AAB;
-  --accent-strong: #FFB0BD;
-  --accent-container: #3A2026;
-  --accent-container-text: #FFAFBD;
+  --accent: #f49bc2;
+  --accent-strong: #f7b3d3;
+  --accent-container: #3a2030;
+  --accent-container-text: #ffc7e0;
 
-  --accent-salgada-bg: #1E3B24; --accent-salgada-text: #8FE0A0;
-  --accent-doce-bg: #3A2026;    --accent-doce-text: #FF9FB0;
-  --accent-quente-bg: #3D2229;  --accent-quente-text: #FFB0BC;
-  --accent-fria-bg: #163B31;    --accent-fria-text: #7FE8CC;
+  --accent-salgada-bg: #1b3b2c; --accent-salgada-text: #8fe8c4;
+  --accent-doce-bg: #3a2030;    --accent-doce-text: #ffa8ce;
+  --accent-quente-bg: #3d2230;  --accent-quente-text: #ffb3d0;
+  --accent-fria-bg: #143b2f;    --accent-fria-text: #7fe8c4;
 
   --danger: #FF6B6B;
   --danger-strong: #FF8A8A;
 
   --toast-bg: #FFF2F2;
-  --toast-text: #165823;
+  --toast-text: #0b5c3c;
 
-  --focus-ring: #FF9AAB;
+  --focus-ring: #f49bc2;
 
   --elev-1: 0 1px 3px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.25);
   --elev-2: 0 3px 10px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
@@ -206,7 +199,16 @@ header.topbar {
 }
 .brand-icon { font-size: 1.4rem; }
 .brand-logo { height: 34px; width: auto; display: block; }
-.login-logo { height: 96px; width: auto; display: block; margin: 0 auto 6px; }
+.login-logo { height: 250px; width: auto; display: block; margin: 0 auto 6px; }
+
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
 
 nav.mainnav {
   display: flex;
@@ -479,7 +481,7 @@ textarea { resize: vertical; min-height: 90px; }
 
 /* Campo de senha com botão de mostrar/ocultar embutido. */
 .password-field { position: relative; }
-.password-field input { padding-right: 46px; letter-spacing: 0.08em; }
+.password-field input { padding-right: 46px; letter-spacing: 0.08em; font-family: "Inter", "Segoe UI", Roboto, system-ui, -apple-system, sans-serif; }
 .password-field .toggle-visibility {
   position: absolute;
   right: 6px;
