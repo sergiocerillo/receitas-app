@@ -16,6 +16,7 @@ create table if not exists recipes (
   tags jsonb not null default '[]',
   photo text,
   favorite boolean not null default false,
+  cook_log jsonb not null default '[]', -- array de timestamps ISO: cada vez que marcou "já fiz essa receita"
   created_at timestamptz not null default now()
 );
 

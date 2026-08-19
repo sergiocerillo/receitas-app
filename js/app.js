@@ -9,6 +9,10 @@ function recipeCardHTML(r) {
     ? `<div class="chip-list">${r.tags.map(t => `<span class="chip small">${escapeHTML(t)}</span>`).join("")}</div>`
     : "";
 
+  const cookedBadge = (r.cook_log && r.cook_log.length)
+    ? `<span class="badge" title="Você já fez essa receita">🍳 ${r.cook_log.length}×</span>`
+    : "";
+
   return `
     <a class="recipe-card" href="receita.html?id=${r.id}">
       <button type="button" class="favorite-btn ${r.favorite ? "active" : ""}" data-fav-id="${r.id}" title="${r.favorite ? "Remover dos favoritos" : "Favoritar"}" aria-label="${r.favorite ? "Remover " + escapeHTML(r.title) + " dos favoritos" : "Favoritar " + escapeHTML(r.title)}" aria-pressed="${r.favorite ? "true" : "false"}">${r.favorite ? "★" : "☆"}</button>
@@ -16,7 +20,7 @@ function recipeCardHTML(r) {
       <span class="tag ${r.category}">${CATEGORY_LABELS[r.category]}</span>
       <div class="body">
         <h3>${escapeHTML(r.title)}</h3>
-        <div class="meta">${formatDate(r.created_at)}</div>
+        <div class="meta">${formatDate(r.created_at)} ${cookedBadge}</div>
         <div class="ingredients-preview">${escapeHTML(ingredientsPreview)}${more}</div>
         ${tagsHTML}
       </div>

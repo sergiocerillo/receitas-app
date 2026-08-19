@@ -52,7 +52,10 @@
     <div class="form-section">
       <div class="page-header" style="margin-bottom:12px;">
         <h2 style="margin:0;">Sua lista</h2>
-        <button type="button" class="btn secondary small no-print" onclick="window.print()">Imprimir</button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" id="whatsapp-btn" class="btn secondary small no-print">📱 Enviar por WhatsApp</button>
+          <button type="button" class="btn secondary small no-print" onclick="window.print()">Imprimir</button>
+        </div>
       </div>
       <div id="shopping-list"></div>
     </div>
@@ -67,6 +70,7 @@
 <script src="js/app.js"></script>
 <script>
   let recipes = [];
+  let currentItems = [];
   const selectEl = document.getElementById("recipe-select");
 
   document.getElementById("generate-btn").addEventListener("click", () => {
@@ -91,6 +95,7 @@
     });
 
     const items = Object.values(consolidated).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+    currentItems = items;
     const listEl = document.getElementById("shopping-list");
     listEl.innerHTML = items.map(i => `
       <label class="shopping-list-item">
@@ -102,6 +107,16 @@
 
     document.getElementById("result-wrap").style.display = "block";
     document.getElementById("result-wrap").scrollIntoView({ behavior: "smooth" });
+  });
+
+  document.getElementById("whatsapp-btn").addEventListener("click", () => {
+    if (!currentItems.length) return;
+    const lines = currentItems.map(i => {
+      const qty = i.amount !== null ? `${i.amount}${i.unit ? " " + i.unit : ""}` : (i.unit || "");
+      return `- ${i.name}${qty ? ` (${qty})` : ""}`;
+    });
+    const text = `🛒 *Lista de compras*\n\n${lines.join("\n")}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   });
 
   (async () => {

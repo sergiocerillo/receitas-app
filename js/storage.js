@@ -89,6 +89,23 @@ const Storage = {
     return this.update(id, { favorite: !recipe.favorite });
   },
 
+  // Histórico de "já fiz essa receita" — cada marcação empilha um timestamp
+  // em cook_log, então dá pra saber quantas vezes e quando foi a última.
+  async markCooked(id) {
+    const recipe = await this.getById(id);
+    if (!recipe) return;
+    const log = [...(recipe.cook_log || []), new Date().toISOString()];
+    return this.update(id, { cook_log: log });
+  },
+
+  // Desfaz a última marcação (pra corrigir clique errado).
+  async unmarkLastCooked(id) {
+    const recipe = await this.getById(id);
+    if (!recipe || !recipe.cook_log?.length) return;
+    const log = recipe.cook_log.slice(0, -1);
+    return this.update(id, { cook_log: log });
+  },
+
   // Busca simples client-side (título, ingredientes, tags) — o volume de
   // receitas de um app pessoal não justifica full-text search no banco.
   async search(term) {

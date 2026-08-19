@@ -39,6 +39,8 @@
   <!-- preenchido via JS -->
 </main>
 
+<div id="toast" class="toast"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/supabaseClient.js"></script>
@@ -49,6 +51,17 @@
 <script>
   let recipe = null;
   const content = document.getElementById("content");
+
+  function cookInfoHTML() {
+    const log = recipe.cook_log || [];
+    if (!log.length) return "";
+    const last = log[log.length - 1];
+    return `
+      <div class="badge" style="margin-top:8px;">
+        🍳 Feita ${log.length}× — última em ${formatDate(last)}
+        <button type="button" id="undo-cooked-btn" style="border:none; background:none; color:inherit; text-decoration:underline; cursor:pointer; font:inherit; padding:0; margin-left:6px;">desfazer</button>
+      </div>`;
+  }
 
   function renderDetail() {
     const photoHTML = recipe.photo
@@ -67,8 +80,10 @@
             <span>Cadastrada em ${formatDate(recipe.created_at)}</span>
           </div>
           ${recipe.tags && recipe.tags.length ? `<div class="chip-list">${recipe.tags.map(t => `<span class="chip">${escapeHTML(t)}</span>`).join("")}</div>` : ""}
+          ${cookInfoHTML()}
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap;" class="no-print">
+          <button type="button" id="cooked-btn" class="btn secondary">✓ Já fiz essa receita</button>
           <button type="button" id="fav-btn" class="btn secondary">${recipe.favorite ? "★ Favorita" : "☆ Favoritar"}</button>
           <button type="button" id="translate-btn" class="btn secondary">🌐 Traduzir</button>
           <button type="button" class="btn secondary" onclick="window.print()">🖨 Imprimir</button>
@@ -111,7 +126,39 @@
       renderDetail();
     });
 
+    document.getElementById("cooked-btn").addEventListener("click", async () => {
+      try {
+        const updated = await Storage.markCooked(recipe.id);
+        recipe.cook_log = updated.cook_log;
+        renderDetail();
+      } catch (err) {
+        showToast("Não foi possível registrar: " + err.message);
+      }
+    });
+
+    const undoBtn = document.getElementById("undo-cooked-btn");
+    if (undoBtn) {
+      undoBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        try {
+          const updated = await Storage.unmarkLastCooked(recipe.id);
+          recipe.cook_log = updated.cook_log;
+          renderDetail();
+        } catch (err) {
+          showToast("Não foi possível desfazer: " + err.message);
+        }
+      });
+    }
+
     document.getElementById("translate-btn").addEventListener("click", translateDetail);
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove("show"), 3200);
   }
 
   async function translateDetail() {
