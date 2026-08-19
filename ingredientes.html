@@ -86,27 +86,50 @@
 <script src="js/app.js"></script>
 <script src="js/ingredients.js"></script>
 <script>
-  // Uma lista só por tipo: mistura ingredientes padrão (não ocultados) com
-  // os que você mesmo cadastrou. Excluir um ingrediente padrão só o esconde
-  // (ele nunca mais aparece, sem precisar de uma seção separada pra isso);
-  // excluir um que você cadastrou apaga de verdade.
+  // Uma lista só por tipo, mas agrupada por categoria (chás, cafés, xaropes,
+  // legumes e verduras etc.) — mistura os ingredientes padrão (não
+  // ocultados) com os que você mesmo cadastrou, esses últimos juntados
+  // numa categoria "Seus ingredientes" no final. Excluir um ingrediente
+  // padrão só o esconde; excluir um que você cadastrou apaga de verdade.
+  function ingredientRowHTML(type, name) {
+    const warn = type === "food" && isLikelyNonVeg(name);
+    return `
+      <div class="ingredient-item ${warn ? "warn" : ""}">
+        <span>${escapeHTML(name)}${warn ? ' <span class="badge">⚠️ pode não ser vegetariano</span>' : ""}</span>
+        <button type="button" class="hide-btn" data-name="${escapeHTML(name)}" data-type="${type}" title="Excluir" aria-label="Excluir ${escapeHTML(name)}">×</button>
+      </div>`;
+  }
+
   async function renderList(type, listElId, searchTerm = "") {
     const listEl = document.getElementById(listElId);
-    const all = await Ingredients.getAll(type);
+    const groups = type === "food" ? FOOD_INGREDIENT_GROUPS : DRINK_INGREDIENT_GROUPS;
+    const hidden = await Ingredients.getHidden(type);
+    const custom = await Ingredients.getCustom(type);
     const term = searchTerm.trim().toLowerCase();
-    const filtered = (term ? all.filter(n => n.toLowerCase().includes(term)) : all)
-      .sort((a, b) => a.localeCompare(b, "pt-BR"));
 
-    if (!filtered.length) {
+    const sections = [];
+    for (const [groupName, items] of Object.entries(groups)) {
+      let visible = items.filter(n => !hidden.includes(n));
+      if (term) visible = visible.filter(n => n.toLowerCase().includes(term));
+      if (visible.length) {
+        sections.push({ name: groupName, items: [...visible].sort((a, b) => a.localeCompare(b, "pt-BR")) });
+      }
+    }
+
+    let customVisible = term ? custom.filter(n => n.toLowerCase().includes(term)) : custom;
+    if (customVisible.length) {
+      sections.push({ name: "Seus ingredientes", items: [...customVisible].sort((a, b) => a.localeCompare(b, "pt-BR")) });
+    }
+
+    if (!sections.length) {
       listEl.innerHTML = `<div class="empty-list-msg">Nenhum ingrediente encontrado.</div>`;
       return;
     }
 
-    listEl.innerHTML = filtered.map(name => `
-      <div class="ingredient-item ${type === "food" && isLikelyNonVeg(name) ? "warn" : ""}">
-        <span>${escapeHTML(name)}${type === "food" && isLikelyNonVeg(name) ? ' <span class="badge">⚠️ pode não ser vegetariano</span>' : ""}</span>
-        <button type="button" class="hide-btn" data-name="${escapeHTML(name)}" data-type="${type}" title="Excluir" aria-label="Excluir ${escapeHTML(name)}">×</button>
-      </div>`).join("");
+    listEl.innerHTML = sections.map(sec => `
+      <div class="ingredient-group-title">${escapeHTML(sec.name)}</div>
+      ${sec.items.map(name => ingredientRowHTML(type, name)).join("")}
+    `).join("");
 
     listEl.querySelectorAll(".hide-btn").forEach(btn => {
       btn.addEventListener("click", async () => {

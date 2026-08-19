@@ -638,7 +638,20 @@ textarea { resize: vertical; min-height: 90px; }
   max-height: 220px;
   overflow-y: auto;
 }
-.manage-list.base { max-height: 260px; }
+.manage-list.base { max-height: 340px; }
+
+.ingredient-group-title {
+  padding: 9px 13px 5px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--on-surface-faint);
+  background: var(--surface-1);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
 
 .ingredient-manage-grid {
   display: grid;
