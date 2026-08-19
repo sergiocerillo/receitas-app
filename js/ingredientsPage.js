@@ -26,16 +26,19 @@ async function initIngredientsPage({ type, groups, listElId, searchElId, formElI
   const baseGroupNames = Object.keys(groups);
   const groupSelect = document.getElementById(groupElId);
 
-  // "+ Nova categoria": botão + mini-formulário inseridos logo após o select.
+  // "+ Nova categoria": inserido como bloco à parte, abaixo de toda a linha
+  // do formulário — não entra no flex-row do Nome/Categoria/Adicionar pra
+  // não desalinhar nem quebrar a linha quando o mini-formulário aparece.
+  const formEl = document.getElementById(formElId);
   const newGroupBtn = document.createElement("button");
   newGroupBtn.type = "button";
   newGroupBtn.className = "btn secondary small";
-  newGroupBtn.style.marginTop = "6px";
+  newGroupBtn.style.marginTop = "14px";
   newGroupBtn.textContent = "+ Nova categoria";
-  groupSelect.insertAdjacentElement("afterend", newGroupBtn);
+  formEl.insertAdjacentElement("afterend", newGroupBtn);
 
   const newGroupWrap = document.createElement("div");
-  newGroupWrap.style.cssText = "display:none; gap:6px; margin-top:8px;";
+  newGroupWrap.style.cssText = "display:none; gap:8px; margin-top:10px; max-width:360px;";
   newGroupWrap.innerHTML = `
     <input type="text" placeholder="Nome da nova categoria" style="flex:1;">
     <button type="button" class="btn small">Criar</button>
