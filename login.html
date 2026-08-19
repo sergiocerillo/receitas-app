@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrar - Minhas Receitas</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<main style="max-width:380px; margin:80px auto;">
+  <div class="page-header" style="justify-content:center; text-align:center; flex-direction:column;">
+    <h1 style="margin-bottom:4px;">🥗 Minhas Receitas</h1>
+    <p class="picker-hint">Digite a senha de acesso para entrar.</p>
+  </div>
+
+  <form id="auth-form" class="form-section">
+    <div class="field">
+      <label for="password">Senha</label>
+      <input type="password" id="password" placeholder="••••••••" required autofocus>
+    </div>
+    <button type="submit" class="btn" id="submit-btn" style="width:100%; justify-content:center;">Entrar</button>
+    <p id="auth-status" class="picker-hint" style="margin-top:12px; margin-bottom:0;"></p>
+  </form>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  const statusEl = document.getElementById("auth-status");
+  const submitBtn = document.getElementById("submit-btn");
+
+  function setStatus(msg, isError) {
+    statusEl.textContent = msg;
+    statusEl.style.color = isError ? "var(--danger)" : "var(--primary)";
+  }
+
+  document.getElementById("auth-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const password = document.getElementById("password").value;
+    submitBtn.disabled = true;
+
+    try {
+      await Auth.signInWithSitePassword(password);
+      window.location.href = "index.html";
+    } catch (err) {
+      setStatus("Senha incorreta. Tente de novo.", true);
+      submitBtn.disabled = false;
+    }
+  });
+
+  // Se já estiver logado, pula direto para a home.
+  Auth.getUser().then(user => { if (user) window.location.href = "index.html"; });
+</script>
+</body>
+</html>

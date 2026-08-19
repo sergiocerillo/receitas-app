@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Receita - Minhas Receitas</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-icon">🥗</span>Minhas Receitas</div>
+  <nav class="mainnav">
+    <a href="index.html" data-page="index.html">Home</a>
+    <a href="salgadas.html" data-page="salgadas.html">Salgadas</a>
+    <a href="doces.html" data-page="doces.html">Doces</a>
+    <div class="dropdown">
+      <span>Bebidas ▾</span>
+      <div class="dropdown-menu">
+        <a href="bebidas-quentes.html">Quentes</a>
+        <a href="bebidas-frias.html">Frias</a>
+      </div>
+    </div>
+    <a href="ingredientes.html" data-page="ingredientes.html">Ingredientes</a>
+    <a href="lista-compras.html" data-page="lista-compras.html">Lista de compras</a>    <button type="button" id="logout-btn" class="btn secondary small">Sair</button>
+  </nav>
+</header>
+
+<main id="content">
+  <!-- preenchido via JS -->
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/app.js"></script>
+<script src="js/translate.js"></script>
+<script>
+  let recipe = null;
+  const content = document.getElementById("content");
+
+  function renderDetail() {
+    const photoHTML = recipe.photo
+      ? `<img class="recipe-photo" src="${recipe.photo}" alt="${escapeHTML(recipe.title)}">`
+      : "";
+    const notesHTML = recipe.notes
+      ? `<div class="form-section" id="notes-section"><h2>Observações</h2><div class="detail-steps" id="notes-text">${escapeHTML(recipe.notes)}</div></div>`
+      : "";
+
+    content.innerHTML = `
+      <div class="page-header">
+        <div class="detail-header">
+          <span class="tag ${recipe.category}">${CATEGORY_LABELS[recipe.category]}</span>
+          <h1>${escapeHTML(recipe.title)}</h1>
+          <div class="meta" style="color:var(--on-surface-faint);">
+            <span>Cadastrada em ${formatDate(recipe.created_at)}</span>
+          </div>
+          ${recipe.tags && recipe.tags.length ? `<div class="chip-list">${recipe.tags.map(t => `<span class="chip">${escapeHTML(t)}</span>`).join("")}</div>` : ""}
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;" class="no-print">
+          <button type="button" id="fav-btn" class="btn secondary">${recipe.favorite ? "★ Favorita" : "☆ Favoritar"}</button>
+          <button type="button" id="translate-btn" class="btn secondary">🌐 Traduzir</button>
+          <button type="button" class="btn secondary" onclick="window.print()">🖨 Imprimir</button>
+          <a class="btn secondary" href="cadastro.html?id=${recipe.id}">✎ Editar</a>
+          <a class="btn secondary" href="index.html">← Voltar</a>
+          <button id="delete-btn" class="btn danger">Excluir</button>
+        </div>
+      </div>
+
+      ${photoHTML}
+
+      <div class="form-section">
+        <h2>Ingredientes</h2>
+        <ul class="detail-ingredients" id="ingredients-list">
+          ${recipe.ingredients.map(i => `<li><span>${escapeHTML(i.name)}</span><span>${escapeHTML(formatQty(i))}</span></li>`).join("")}
+        </ul>
+      </div>
+
+      <div class="form-section">
+        <h2>Modo de preparo</h2>
+        <div class="detail-steps" id="steps-text">${escapeHTML(recipe.steps)}</div>
+      </div>
+
+      ${notesHTML}
+
+      <p id="translate-status" class="picker-hint"></p>
+    `;
+
+    document.getElementById("delete-btn").addEventListener("click", async () => {
+      if (confirm("Tem certeza que deseja excluir esta receita?")) {
+        await Storage.remove(recipe.id);
+        window.location.href = "index.html";
+      }
+    });
+
+    document.getElementById("fav-btn").addEventListener("click", async () => {
+      await Storage.toggleFavorite(recipe.id);
+      recipe.favorite = !recipe.favorite;
+      renderDetail();
+    });
+
+    document.getElementById("translate-btn").addEventListener("click", translateDetail);
+  }
+
+  async function translateDetail() {
+    const statusEl = document.getElementById("translate-status");
+    statusEl.textContent = "Traduzindo para português...";
+    statusEl.style.color = "var(--primary)";
+    try {
+      const parsed = await translateParsedRecipe({
+        title: recipe.title,
+        ingredients: recipe.ingredients,
+        steps: recipe.steps
+      }, "en", "pt-br");
+
+      document.querySelector(".detail-header h1").textContent = parsed.title;
+      document.getElementById("ingredients-list").innerHTML = parsed.ingredients.map(i =>
+        `<li><span>${escapeHTML(i.name)}</span><span>${escapeHTML(formatQty(i))}</span></li>`
+      ).join("");
+      document.getElementById("steps-text").textContent = parsed.steps;
+      statusEl.textContent = "Tradução aplicada só nesta visualização (o original continua salvo).";
+    } catch {
+      statusEl.textContent = "Não foi possível traduzir agora. Tente novamente em instantes.";
+      statusEl.style.color = "var(--danger)";
+    }
+  }
+
+  (async () => {
+    const user = await Auth.requireAuth();
+    if (!user) return;
+
+    const params = new URLSearchParams(location.search);
+    recipe = await Storage.getById(params.get("id"));
+
+    if (!recipe) {
+      content.innerHTML = `
+        <div class="empty-state">
+          <p>Receita não encontrada.</p>
+          <a class="btn" href="index.html">Voltar para a home</a>
+        </div>`;
+      return;
+    }
+    document.title = recipe.title + " - Minhas Receitas";
+    renderDetail();
+  })();
+</script>
+</body>
+</html>

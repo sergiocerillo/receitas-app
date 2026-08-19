@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastrar Receita - Minhas Receitas</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-icon">🥗</span>Minhas Receitas</div>
+  <nav class="mainnav">
+    <a href="index.html" data-page="index.html">Home</a>
+    <a href="salgadas.html" data-page="salgadas.html">Salgadas</a>
+    <a href="doces.html" data-page="doces.html">Doces</a>
+    <div class="dropdown">
+      <span>Bebidas ▾</span>
+      <div class="dropdown-menu">
+        <a href="bebidas-quentes.html">Quentes</a>
+        <a href="bebidas-frias.html">Frias</a>
+      </div>
+    </div>
+    <a href="ingredientes.html" data-page="ingredientes.html">Ingredientes</a>
+    <a href="lista-compras.html" data-page="lista-compras.html">Lista de compras</a>    <button type="button" id="logout-btn" class="btn secondary small">Sair</button>
+  </nav>
+</header>
+
+<main>
+  <div class="page-header">
+    <h1 id="page-title">Cadastrar nova receita</h1>
+    <a class="btn secondary" href="index.html">← Voltar</a>
+  </div>
+
+  <form id="recipe-form">
+    <div class="form-section">
+      <h2>Informações básicas</h2>
+
+      <div class="field">
+        <label for="title">Título da receita</label>
+        <input type="text" id="title" placeholder="Ex: Bolo de cenoura com cobertura" required>
+      </div>
+
+      <div class="field">
+        <label>Categoria</label>
+        <div class="category-picker">
+          <label><input type="radio" name="category" value="salgada" required> Salgada</label>
+          <label><input type="radio" name="category" value="doce"> Doce</label>
+          <label><input type="radio" name="category" value="bebida-quente"> Bebida quente</label>
+          <label><input type="radio" name="category" value="bebida-fria"> Bebida fria</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="photo-input">Foto da receita</label>
+        <input type="file" id="photo-input" accept="image/*">
+        <div id="photo-preview-wrap" style="display:none; margin-top:10px;">
+          <img id="photo-preview" alt="Pré-visualização da foto" style="max-width:220px; border-radius:12px; display:block;">
+          <button type="button" id="photo-remove-btn" class="btn secondary small" style="margin-top:8px;">Remover foto</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="tag-input">Tags</label>
+        <input type="text" id="tag-input" placeholder="Digite uma tag e aperte Enter (ex: rápido, festa, sem glúten)">
+        <div id="tag-list" class="chip-list"></div>
+      </div>
+    </div>
+
+    <div class="form-section" id="ingredient-picker-wrap" style="display:none;">
+      <h2 id="picker-title">Ingredientes</h2>
+      <p class="picker-hint">Arraste um ingrediente da lista da esquerda para a da direita (ou clique no "+"). Para remover, arraste de volta ou clique no "×".</p>
+
+      <div class="ingredient-picker">
+        <div class="picker-col">
+          <h3>Lista de ingredientes</h3>
+          <div class="search-box">
+            <input type="text" id="ingredient-search" placeholder="Pesquisar ingrediente...">
+          </div>
+          <div id="available-list" class="picker-list"></div>
+
+          <div id="new-ingredient-form" class="new-ingredient-form">
+            <input type="text" id="new-ingredient-name" placeholder="Cadastrar novo ingrediente...">
+            <button type="button" id="new-ingredient-submit" class="btn secondary small">+ Adicionar à lista de <span id="new-ingredient-type-hint">comida</span></button>
+          </div>
+        </div>
+        <div class="picker-col">
+          <h3>Ingredientes da receita</h3>
+          <div id="selected-list" class="picker-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="picker-hint" id="pick-category-hint">Selecione a categoria acima para escolher os ingredientes.</p>
+
+    <div class="form-section">
+      <h2>Modo de preparo</h2>
+      <div class="field">
+        <label for="steps">Descreva o passo a passo</label>
+        <textarea id="steps" rows="8" placeholder="1. Misture os ingredientes secos...&#10;2. ..." required></textarea>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Observações</h2>
+      <div class="field">
+        <label for="notes">Dicas, substituições, tempo de preparo, rendimento...</label>
+        <textarea id="notes" rows="4" placeholder="Ex: Pode substituir o leite de vaca por leite de aveia. Rende 8 porções."></textarea>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn secondary" href="index.html">Cancelar</a>
+      <button type="submit" class="btn" id="submit-btn">Salvar receita</button>
+    </div>
+  </form>
+
+  <details class="import-details">
+    <summary>Importar de um link</summary>
+    <div class="form-section" style="margin-top:12px;">
+      <p class="picker-hint">Cole o link de uma receita e eu preencho o título, os ingredientes e o preparo automaticamente. Ingredientes que ainda não existem na sua lista são cadastrados na hora. Selecione a categoria acima antes de importar.</p>
+
+      <div class="field-row">
+        <div class="field" style="flex:3;">
+          <label for="import-url">Link da receita</label>
+          <input type="text" id="import-url" placeholder="https://...">
+        </div>
+        <div class="field" style="flex:0 0 auto; align-self:flex-end;">
+          <button type="button" id="import-url-btn" class="btn secondary">Buscar do link</button>
+        </div>
+      </div>
+
+      <label style="display:flex; align-items:center; gap:6px; font-weight:600; font-size:0.85rem; color:var(--on-surface-muted); margin:0 0 10px;">
+        <input type="checkbox" id="import-translate" style="width:auto;"> Receita está em inglês — traduzir para português
+      </label>
+      <p id="import-status" class="picker-hint" style="margin:0;"></p>
+    </div>
+  </details>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/app.js"></script>
+<script src="js/ingredients.js"></script>
+<script src="js/import.js"></script>
+<script src="js/translate.js"></script>
+<script src="js/cadastro.js"></script>
+</body>
+</html>

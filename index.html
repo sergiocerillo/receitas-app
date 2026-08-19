@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minhas Receitas</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-icon">🥗</span>Minhas Receitas</div>
+  <nav class="mainnav">
+    <a href="index.html" data-page="index.html">Home</a>
+    <a href="salgadas.html" data-page="salgadas.html">Salgadas</a>
+    <a href="doces.html" data-page="doces.html">Doces</a>
+    <div class="dropdown">
+      <span>Bebidas ▾</span>
+      <div class="dropdown-menu">
+        <a href="bebidas-quentes.html">Quentes</a>
+        <a href="bebidas-frias.html">Frias</a>
+      </div>
+    </div>
+    <a href="ingredientes.html" data-page="ingredientes.html">Ingredientes</a>
+    <a href="lista-compras.html" data-page="lista-compras.html">Lista de compras</a>    <button type="button" id="logout-btn" class="btn secondary small">Sair</button>
+  </nav>
+</header>
+
+<main>
+  <div class="page-header">
+    <h1>Receitas recentes</h1>
+    <a class="btn" href="cadastro.html">+ Cadastrar nova receita</a>
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="search-input" placeholder="Pesquisar por título ou ingrediente...">
+  </div>
+
+  <div class="filter-tabs">
+    <button type="button" id="tab-all" class="active">Todas</button>
+    <button type="button" id="tab-fav">★ Favoritas</button>
+  </div>
+
+  <div id="grid" class="recipe-grid"></div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/ingredients.js"></script>
+<script src="js/app.js"></script>
+<script>
+  let mode = "recent"; // recent | favorites | search
+
+  async function refresh() {
+    const term = document.getElementById("search-input").value.trim();
+    if (term) {
+      mode = "search";
+      renderGrid("grid", await Storage.search(term), "Nenhuma receita encontrada para essa busca.", refresh);
+      return;
+    }
+    if (mode === "favorites") {
+      renderGrid("grid", await Storage.favorites(), "Você ainda não marcou nenhuma receita como favorita.", refresh);
+    } else {
+      renderGrid("grid", await Storage.recent(24), "Você ainda não cadastrou nenhuma receita.", refresh);
+    }
+  }
+
+  document.getElementById("search-input").addEventListener("input", refresh);
+
+  document.getElementById("tab-all").addEventListener("click", () => {
+    mode = "recent";
+    document.getElementById("tab-all").classList.add("active");
+    document.getElementById("tab-fav").classList.remove("active");
+    document.getElementById("search-input").value = "";
+    refresh();
+  });
+
+  document.getElementById("tab-fav").addEventListener("click", () => {
+    mode = "favorites";
+    document.getElementById("tab-fav").classList.add("active");
+    document.getElementById("tab-all").classList.remove("active");
+    document.getElementById("search-input").value = "";
+    refresh();
+  });
+
+  (async () => {
+    const user = await Auth.requireAuth();
+    if (!user) return;
+    refresh();
+  })();
+</script>
+</body>
+</html>
