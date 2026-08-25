@@ -45,18 +45,21 @@ const Storage = {
     const user_id = await this._userId();
     const { data, error } = await sb.from("recipes").insert({ ...recipe, user_id }).select().single();
     if (error) throw error;
+    await Ingredients.syncRecipeIngredient(data);
     return data;
   },
 
   async update(id, patch) {
     const { data, error } = await sb.from("recipes").update(patch).eq("id", id).select().single();
     if (error) throw error;
+    await Ingredients.syncRecipeIngredient(data);
     return data;
   },
 
   async remove(id) {
     const { error } = await sb.from("recipes").delete().eq("id", id);
     if (error) throw error;
+    await Ingredients.removeRecipeIngredient(id);
   },
 
   async getById(id) {
@@ -199,6 +202,33 @@ const Ingredients = {
     const user_id = await Storage._userId();
     const { error } = await sb.from("ingredient_prefs").update(patch).eq("user_id", user_id);
     if (error) throw error;
+  },
+
+  // Mantém receitas-base marcadas como personalizadas disponíveis também na
+  // lista comum de ingredientes. O tipo vem da categoria da receita:
+  // salgadas/doces viram comida; bebidas quentes/frias viram bebida.
+  async syncRecipeIngredient(recipe) {
+    const prefs = await this._getPrefsRow();
+    const clean = type => this._normalizeCustom(prefs[`custom_${type}`])
+      .filter(item => item.recipe_id !== recipe.id);
+    let food = clean("food");
+    let drink = clean("drink");
+
+    if (recipe.is_custom_recipe) {
+      const type = CATEGORY_TO_INGREDIENT_TYPE[recipe.category];
+      const item = { name: recipe.title, group: "Outros", recipe_id: recipe.id };
+      if (type === "food") food = [...food, item];
+      if (type === "drink") drink = [...drink, item];
+    }
+
+    await this._savePrefsRow({ custom_food: food, custom_drink: drink });
+  },
+
+  async removeRecipeIngredient(recipeId) {
+    const prefs = await this._getPrefsRow();
+    const remove = type => this._normalizeCustom(prefs[`custom_${type}`])
+      .filter(item => item.recipe_id !== recipeId);
+    await this._savePrefsRow({ custom_food: remove("food"), custom_drink: remove("drink") });
   },
 
   // Cada item customizado é {name, group}. Dados antigos (só o nome, string
