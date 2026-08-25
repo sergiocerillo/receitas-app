@@ -70,8 +70,9 @@
   }
 
   function renderDetail() {
-    const photoHTML = recipe.photo
-      ? `<img class="recipe-photo" src="${recipe.photo}" alt="${escapeHTML(recipe.title)}">`
+    const photoUrl = getRecipePhotoUrl(recipe);
+    const photoHTML = photoUrl
+      ? `<img class="recipe-photo" src="${escapeAttrUrl(photoUrl)}" alt="${escapeHTML(recipe.title)}">`
       : "";
     const notesHTML = recipe.notes
       ? `<div class="form-section" id="notes-section"><h2>Observações</h2><div class="detail-steps" id="notes-text">${escapeHTML(recipe.notes)}</div></div>`

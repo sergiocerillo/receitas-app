@@ -1,8 +1,20 @@
+const DEFAULT_CATEGORY_PHOTOS = {
+  "bebida-quente": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=1587&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "bebida-fria": "https://images.unsplash.com/photo-1551265935-b7354f59a3fd?q=80&w=1587&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  salgada: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  doce: "https://images.unsplash.com/photo-1633424416833-2c558a535781?q=80&w=1587&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+};
+
+function getRecipePhotoUrl(recipe) {
+  return recipe.photo || DEFAULT_CATEGORY_PHOTOS[recipe.category] || "";
+}
+
 function recipeCardHTML(r) {
   const ingredientsPreview = r.ingredients.slice(0, 3).map(i => i.name).join(", ");
   const more = r.ingredients.length > 3 ? ` +${r.ingredients.length - 3}` : "";
-  const thumb = r.photo
-    ? `<img class="thumb" src="${escapeAttrUrl(r.photo)}" alt="${escapeHTML(r.title)}">`
+  const photoUrl = getRecipePhotoUrl(r);
+  const thumb = photoUrl
+    ? `<img class="thumb" src="${escapeAttrUrl(photoUrl)}" alt="${escapeHTML(r.title)}">`
     : `<div class="thumb-placeholder">${categoryEmoji(r.category)}</div>`;
 
   const tagsHTML = (r.tags && r.tags.length)
