@@ -1,151 +1,49 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/*
-  Paleta 60/30/10. Fundo (#FFF2F2) ficou como estava; rosa e verde vieram
-  de #E85D97 e #4ECDA0. Nenhum dos dois, puro, passa no contraste mínimo de
-  texto (WCAG AA 4.5:1) — por isso cada um gera um tom escuro (pra texto e
-  botões) e um tom claro (pra fundos de selo/badge), sempre dentro do mesmo
-  matiz da cor original.
-*/
+/* Paleta 60/30/10: areia predominante, marrom para superfícies e preto
+   para contraste e ações. A aplicação usa um único tema fixo. */
 :root {
-  /* 60% — dominante */
-  --bg: #FFF2F2;
-  --surface: #ffffff;
-  --surface-1: #fffbfb;
-  --surface-2: #fce3ee;
-  --surface-3: #fad0e0;
-  --outline: #fad0e0;
-  --outline-soft: #fce3ee;
+  /* 60% */
+  --bg: #E1DCC9;
+  --surface: #E1DCC9;
+  --surface-1: #E1DCC9;
+  --surface-2: #E1DCC9;
+  --surface-3: #E1DCC9;
+  --outline: #412D15;
+  --outline-soft: #412D15;
 
-  /* 30% — verde escuro (derivado de #4ECDA0), pra texto e navegação */
-  --on-bg: #0b5c3c;
-  --on-surface: #0f6b47;
-  --on-surface-muted: #4c8a72;
-  --on-surface-faint: #7fae9a;
+  /* 30% */
+  --on-bg: #1F150C;
+  --on-surface: #1F150C;
+  --on-surface-muted: #412D15;
+  --on-surface-faint: #412D15;
+  --primary-container: #412D15;
+  --accent-container: #412D15;
+  --accent-container-text: #E1DCC9;
+  --accent-salgada-bg: #412D15; --accent-salgada-text: #E1DCC9;
+  --accent-doce-bg: #412D15;    --accent-doce-text: #E1DCC9;
+  --accent-quente-bg: #412D15;  --accent-quente-text: #E1DCC9;
+  --accent-fria-bg: #412D15;    --accent-fria-text: #E1DCC9;
 
-  --primary: #0b5c3c;
-  --primary-strong: #073d28;
-  --on-primary: #ffffff;
-  --primary-container: #dff6ec;
-
-  /* 10% — rosa (#E85D97), destaque */
-  --accent: #e85d97;
-  --accent-strong: #c93f7a;
-  --accent-container: #fce3ee;
-  --accent-container-text: #a32a63;
-
-  --accent-salgada-bg: #dff6ec; --accent-salgada-text: #0b5c3c;
-  --accent-doce-bg: #fce3ee;    --accent-doce-text: #a32a63;
-  --accent-quente-bg: #fad0e0;  --accent-quente-text: #8c1f52;
-  --accent-fria-bg: #c9f2e2;    --accent-fria-text: #08402b;
-
-  --danger: #d64550;
-  --danger-strong: #b8394a;
-
-  --toast-bg: #0b5c3c;
-  --toast-text: #ffffff;
-
-  --focus-ring: #e85d97;
+  /* 10% */
+  --primary: #000000;
+  --primary-strong: #1F150C;
+  --on-primary: #E1DCC9;
+  --accent: #000000;
+  --accent-strong: #1F150C;
+  --danger: #000000;
+  --danger-strong: #1F150C;
+  --toast-bg: #000000;
+  --toast-text: #E1DCC9;
+  --focus-ring: #000000;
 
   --radius-sm: 10px;
   --radius: 16px;
   --radius-lg: 22px;
 
-  --elev-1: 0 1px 3px rgba(11,92,60,0.08), 0 1px 2px rgba(11,92,60,0.06);
-  --elev-2: 0 3px 10px rgba(11,92,60,0.10), 0 1px 3px rgba(11,92,60,0.08);
-  --elev-3: 0 10px 24px rgba(11,92,60,0.16);
-}
-
-/*
-  Dark mode — só entra em vigor dentro da aplicação (páginas depois do
-  login; login.html força tema claro). Mesmos dois matizes, com os papéis
-  invertidos: tons claros de rosa/verde viram destaque sobre fundo escuro.
-  Ativa pela preferência do sistema, ou manualmente via [data-theme] (ver
-  js/theme.js e o botão 🌙/☀️ no menu).
-*/
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0F1F15;
-    --surface: #17291D;
-    --surface-1: #1C3122;
-    --surface-2: #24402A;
-    --surface-3: #2D4E31;
-    --outline: #2D4E31;
-    --outline-soft: #203524;
-
-    --on-bg: #FFF2F2;
-    --on-surface: #FBEAEA;
-    --on-surface-muted: #C7AFAF;
-    --on-surface-faint: #9C8686;
-
-    --primary: #f48fbd;
-    --primary-strong: #f7a6cc;
-    --on-primary: #1b0e10;
-    --primary-container: #3a2030;
-
-    --accent: #f49bc2;
-    --accent-strong: #f7b3d3;
-    --accent-container: #3a2030;
-    --accent-container-text: #ffc7e0;
-
-    --accent-salgada-bg: #1b3b2c; --accent-salgada-text: #8fe8c4;
-    --accent-doce-bg: #3a2030;    --accent-doce-text: #ffa8ce;
-    --accent-quente-bg: #3d2230;  --accent-quente-text: #ffb3d0;
-    --accent-fria-bg: #143b2f;    --accent-fria-text: #7fe8c4;
-
-    --danger: #FF6B6B;
-    --danger-strong: #FF8A8A;
-
-    --toast-bg: #FFF2F2;
-    --toast-text: #0b5c3c;
-
-    --focus-ring: #f49bc2;
-
-    --elev-1: 0 1px 3px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.25);
-    --elev-2: 0 3px 10px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
-    --elev-3: 0 10px 24px rgba(0,0,0,0.5);
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0F1F15;
-  --surface: #17291D;
-  --surface-1: #1C3122;
-  --surface-2: #24402A;
-  --surface-3: #2D4E31;
-  --outline: #2D4E31;
-  --outline-soft: #203524;
-
-  --on-bg: #FFF2F2;
-  --on-surface: #FBEAEA;
-  --on-surface-muted: #C7AFAF;
-  --on-surface-faint: #9C8686;
-
-  --primary: #f48fbd;
-  --primary-strong: #f7a6cc;
-  --on-primary: #1b0e10;
-  --primary-container: #3a2030;
-
-  --accent: #f49bc2;
-  --accent-strong: #f7b3d3;
-  --accent-container: #3a2030;
-  --accent-container-text: #ffc7e0;
-
-  --accent-salgada-bg: #1b3b2c; --accent-salgada-text: #8fe8c4;
-  --accent-doce-bg: #3a2030;    --accent-doce-text: #ffa8ce;
-  --accent-quente-bg: #3d2230;  --accent-quente-text: #ffb3d0;
-  --accent-fria-bg: #143b2f;    --accent-fria-text: #7fe8c4;
-
-  --danger: #FF6B6B;
-  --danger-strong: #FF8A8A;
-
-  --toast-bg: #FFF2F2;
-  --toast-text: #0b5c3c;
-
-  --focus-ring: #f49bc2;
-
-  --elev-1: 0 1px 3px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.25);
-  --elev-2: 0 3px 10px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
-  --elev-3: 0 10px 24px rgba(0,0,0,0.5);
+  --elev-1: 0 1px 3px rgba(31,21,12,0.12), 0 1px 2px rgba(31,21,12,0.08);
+  --elev-2: 0 3px 10px rgba(31,21,12,0.18), 0 1px 3px rgba(31,21,12,0.12);
+  --elev-3: 0 10px 24px rgba(31,21,12,0.24);
 }
 
 * { box-sizing: border-box; }
@@ -313,7 +211,7 @@ main {
   box-shadow: none;
 }
 .btn.secondary:hover { background: var(--surface-2); }
-.btn.danger { background: var(--danger); color: #fff; }
+.btn.danger { background: var(--danger); color: var(--on-primary); }
 .btn.danger:hover { background: var(--danger-strong); }
 
 /* Indicador de carregamento inline em botões — mantém a "visibilidade do
@@ -410,7 +308,7 @@ main {
   height: 34px;
   border-radius: 50%;
   border: none;
-  background: rgba(255,255,255,0.92);
+  background: rgba(225,220,201,0.92);
   box-shadow: var(--elev-1);
   font-size: 1.1rem;
   cursor: pointer;
@@ -577,7 +475,7 @@ textarea { resize: vertical; min-height: 90px; }
 }
 .ingredient-item .add-btn:hover { background: var(--primary-container); }
 .ingredient-item .remove-btn { color: var(--danger); }
-.ingredient-item .remove-btn:hover { background: rgba(214,69,80,0.12); }
+.ingredient-item .remove-btn:hover { background: rgba(65,45,21,0.18); }
 
 .ingredient-item .hide-btn {
   color: var(--danger);
@@ -588,7 +486,7 @@ textarea { resize: vertical; min-height: 90px; }
 .ingredient-item:hover .hide-btn { opacity: 0.75; }
 .ingredient-item .hide-btn:hover {
   opacity: 1;
-  background: rgba(214,69,80,0.12);
+  background: rgba(65,45,21,0.18);
   transform: scale(1.05);
 }
 
