@@ -47,6 +47,24 @@ function initIngredientPicker() {
 
   const availableList = document.getElementById("available-list");
   const selectedList = document.getElementById("selected-list");
+  const customRecipeSelect = document.getElementById("custom-recipe-select");
+
+  async function refreshCustomRecipeOptions() {
+    const recipes = await Storage.customRecipes(editingId);
+    customRecipeSelect.innerHTML = `<option value="">Adicionar uma receita personalizada...</option>` + recipes.map(recipe =>
+      `<option value="${escapeAttr(recipe.id)}">${escapeHTML(recipe.title)}</option>`
+    ).join("");
+    document.getElementById("custom-recipe-picker").style.display = recipes.length ? "flex" : "none";
+  }
+
+  document.getElementById("custom-recipe-add-btn").addEventListener("click", () => {
+    const option = customRecipeSelect.selectedOptions[0];
+    if (!option || !option.value) return;
+    addIngredient(option.textContent, "", "", option.value);
+    customRecipeSelect.value = "";
+  });
+
+  refreshCustomRecipeOptions();
 
   selectedList.addEventListener("dragover", (e) => {
     e.preventDefault();
@@ -132,7 +150,7 @@ function renderSelectedList() {
   }
   el.innerHTML = selectedIngredients.map(ing => `
     <div class="ingredient-item selected-item" draggable="true" data-name="${escapeAttr(ing.name)}">
-      <span>${escapeHTML(ing.name)}</span>
+      <span>${escapeHTML(ing.name)}${ing.recipe_id ? ' <span class="badge">receita personalizada</span>' : ""}</span>
       <span class="qty-controls">
         <input type="number" min="0" step="any" class="qty-input" placeholder="qtd" value="${escapeAttr(ing.amount || "")}" data-name="${escapeAttr(ing.name)}" data-field="amount">
         <select class="unit-select" data-name="${escapeAttr(ing.name)}" data-field="unit">
@@ -160,9 +178,9 @@ function renderSelectedList() {
   });
 }
 
-function addIngredient(name, amount = "", unit = "") {
-  if (selectedIngredients.some(i => i.name === name)) return;
-  selectedIngredients.push({ name, amount, unit });
+function addIngredient(name, amount = "", unit = "", recipeId = null) {
+  if (selectedIngredients.some(i => i.name === name || (recipeId && i.recipe_id === recipeId))) return;
+  selectedIngredients.push({ name, amount, unit, ...(recipeId ? { recipe_id: recipeId } : {}) });
   renderSelectedList();
 }
 
@@ -351,6 +369,12 @@ async function loadRecipeForEdit() {
 
   if (recipe.photo) setPhotoFromUrl(recipe.photo);
   previousPhotoUrl = recipe.photo || null;
+  document.getElementById("is-custom-recipe").checked = Boolean(recipe.is_custom_recipe);
+  // A lista foi carregada antes de sabermos o id da receita em edição.
+  // Não permita que uma receita aponte para ela própria como ingrediente.
+  document.querySelectorAll("#custom-recipe-select option").forEach(option => {
+    if (option.value === editingId) option.remove();
+  });
 
   const radio = document.querySelector(`input[name="category"][value="${recipe.category}"]`);
   if (radio) {
@@ -414,6 +438,7 @@ function initForm() {
         steps,
         notes,
         tags,
+        is_custom_recipe: document.getElementById("is-custom-recipe").checked,
         photo: photoUrl,
         ingredients: selectedIngredients
       };

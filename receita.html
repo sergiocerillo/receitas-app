@@ -63,6 +63,13 @@
       </div>`;
   }
 
+  function ingredientNameHTML(ingredient) {
+    const name = escapeHTML(ingredient.name);
+    return ingredient.recipe_id
+      ? `<a href="receita.html?id=${encodeURIComponent(ingredient.recipe_id)}">${name}</a>`
+      : name;
+  }
+
   function renderDetail() {
     const photoHTML = recipe.photo
       ? `<img class="recipe-photo" src="${recipe.photo}" alt="${escapeHTML(recipe.title)}">`
@@ -75,7 +82,7 @@
       <div class="page-header">
         <div class="detail-header">
           <span class="tag ${recipe.category}">${CATEGORY_LABELS[recipe.category]}</span>
-          <h1>${escapeHTML(recipe.title)}</h1>
+          <h1>${escapeHTML(recipe.title)}${recipe.is_custom_recipe ? ' <span class="badge">receita personalizada</span>' : ""}</h1>
           <div class="meta" style="color:var(--on-surface-faint);">
             <span>Cadastrada em ${formatDate(recipe.created_at)}</span>
           </div>
@@ -98,7 +105,7 @@
       <div class="form-section">
         <h2>Ingredientes</h2>
         <ul class="detail-ingredients" id="ingredients-list">
-          ${recipe.ingredients.map(i => `<li><span>${escapeHTML(i.name)}</span><span>${escapeHTML(formatQty(i))}</span></li>`).join("")}
+          ${recipe.ingredients.map(i => `<li><span>${ingredientNameHTML(i)}</span><span>${escapeHTML(formatQty(i))}</span></li>`).join("")}
         </ul>
       </div>
 
@@ -174,7 +181,7 @@
 
       document.querySelector(".detail-header h1").textContent = parsed.title;
       document.getElementById("ingredients-list").innerHTML = parsed.ingredients.map(i =>
-        `<li><span>${escapeHTML(i.name)}</span><span>${escapeHTML(formatQty(i))}</span></li>`
+        `<li><span>${ingredientNameHTML(i)}</span><span>${escapeHTML(formatQty(i))}</span></li>`
       ).join("");
       document.getElementById("steps-text").textContent = parsed.steps;
       statusEl.textContent = "Tradução aplicada só nesta visualização (o original continua salvo).";

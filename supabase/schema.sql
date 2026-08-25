@@ -16,9 +16,13 @@ create table if not exists recipes (
   tags jsonb not null default '[]',
   photo text,
   favorite boolean not null default false,
+  is_custom_recipe boolean not null default false,
   cook_log jsonb not null default '[]', -- array de timestamps ISO: cada vez que marcou "já fiz essa receita"
   created_at timestamptz not null default now()
 );
+
+-- Necessário também para instalações que já tinham a tabela criada.
+alter table recipes add column if not exists is_custom_recipe boolean not null default false;
 
 alter table recipes enable row level security;
 

@@ -60,6 +60,12 @@
         </div>
       </div>
 
+      <label style="display:flex; align-items:center; gap:8px; font-weight:600; color:var(--on-surface-muted);">
+        <input type="checkbox" id="is-custom-recipe" style="width:auto;">
+        Esta é uma receita personalizada / preparação-base (ex.: chimichurri)
+      </label>
+      <p class="picker-hint" style="margin-top:6px;">Receitas marcadas assim podem ser adicionadas como ingrediente com um link para o preparo.</p>
+
       <div class="field">
         <label for="photo-input">Foto da receita</label>
         <input type="file" id="photo-input" accept="image/*">
@@ -95,6 +101,10 @@
         </div>
         <div class="picker-col">
           <h3>Ingredientes da receita</h3>
+          <div id="custom-recipe-picker" class="new-ingredient-form" style="margin-top:0; margin-bottom:12px;">
+            <select id="custom-recipe-select" aria-label="Receita personalizada"></select>
+            <button type="button" id="custom-recipe-add-btn" class="btn secondary small">+ Adicionar receita</button>
+          </div>
           <div id="selected-list" class="picker-list"></div>
         </div>
       </div>

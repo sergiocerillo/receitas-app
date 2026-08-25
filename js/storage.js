@@ -83,6 +83,14 @@ const Storage = {
     return data;
   },
 
+  async customRecipes(excludeId = null) {
+    let query = sb.from("recipes").select("id, title, category").eq("is_custom_recipe", true).order("title");
+    if (excludeId) query = query.neq("id", excludeId);
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  },
+
   async toggleFavorite(id) {
     const recipe = await this.getById(id);
     if (!recipe) return;
