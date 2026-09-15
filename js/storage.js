@@ -1,96 +1,89 @@
-// Camada de persistência via Supabase (Postgres + Row Level Security).
-// Toda função aqui é assíncrona — use sempre com await.
-// Depende de js/supabaseClient.js (variável global `sb`) já carregado.
+// Camada de persistência via localStorage - totalmente local, sem backend
+// Toda função aqui é assíncrona (por compatibilidade) — use sempre com await.
 
 const Storage = {
-  async _userId() {
-    // Modo sem autenticação - retorna ID fixo
-    return 'local-user';
+  _getRecipes() {
+    const data = localStorage.getItem('recipes');
+    return data ? JSON.parse(data) : [];
+  },
+
+  _saveRecipes(recipes) {
+    localStorage.setItem('recipes', JSON.stringify(recipes));
   },
 
   async getAll() {
-    const { data, error } = await sb.from("recipes").select("*").order("created_at", { ascending: false });
-    if (error) throw error;
-    return data;
+    return this._getRecipes().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   },
 
-  // Envia uma foto para o bucket "recipe-photos" e retorna a URL pública
-  // (isso é o que fica salvo em recipes.photo, em vez do base64 antigo).
   async uploadPhoto(file) {
-    const user_id = await this._userId();
-    const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-    const path = `${user_id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error } = await sb.storage.from("recipe-photos").upload(path, file, {
-      cacheControl: "3600",
-      upsert: false,
-      contentType: file.type || undefined
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(file);
     });
-    if (error) throw error;
-    const { data } = sb.storage.from("recipe-photos").getPublicUrl(path);
-    return data.publicUrl;
   },
 
-  // Apaga uma foto do bucket a partir da URL pública salva na receita.
-  // Best-effort: não trava a UI nem lança erro (ex: fotos antigas em base64,
-  // ou vindas de importação por link, não estão no nosso bucket — ignora).
   deletePhoto(url) {
-    if (!url || !url.includes("/recipe-photos/")) return;
-    const path = decodeURIComponent(url.split("/recipe-photos/")[1] || "");
-    if (!path) return;
-    sb.storage.from("recipe-photos").remove([path]).catch(() => {});
+    // Fotos em base64 não precisam ser deletadas
   },
 
   async save(recipe) {
-    const user_id = await this._userId();
-    const { data, error } = await sb.from("recipes").insert({ ...recipe, user_id }).select().single();
-    if (error) throw error;
-    await Ingredients.syncRecipeIngredient(data);
-    return data;
+    const recipes = this._getRecipes();
+    const newRecipe = {
+      ...recipe,
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      created_at: new Date().toISOString(),
+      user_id: 'local-user'
+    };
+    recipes.push(newRecipe);
+    this._saveRecipes(recipes);
+    await Ingredients.syncRecipeIngredient(newRecipe);
+    return newRecipe;
   },
 
   async update(id, patch) {
-    const { data, error } = await sb.from("recipes").update(patch).eq("id", id).select().single();
-    if (error) throw error;
-    await Ingredients.syncRecipeIngredient(data);
-    return data;
+    const recipes = this._getRecipes();
+    const index = recipes.findIndex(r => r.id === id);
+    if (index === -1) throw new Error('Receita não encontrada');
+    recipes[index] = { ...recipes[index], ...patch };
+    this._saveRecipes(recipes);
+    await Ingredients.syncRecipeIngredient(recipes[index]);
+    return recipes[index];
   },
 
   async remove(id) {
-    const { error } = await sb.from("recipes").delete().eq("id", id);
-    if (error) throw error;
+    const recipes = this._getRecipes();
+    const filtered = recipes.filter(r => r.id !== id);
+    this._saveRecipes(filtered);
     await Ingredients.removeRecipeIngredient(id);
   },
 
   async getById(id) {
-    const { data, error } = await sb.from("recipes").select("*").eq("id", id).maybeSingle();
-    if (error) throw error;
-    return data;
+    const recipes = this._getRecipes();
+    return recipes.find(r => r.id === id) || null;
   },
 
   async byCategory(category) {
-    const { data, error } = await sb.from("recipes").select("*").eq("category", category).order("created_at", { ascending: false });
-    if (error) throw error;
-    return data;
+    const all = await this.getAll();
+    return all.filter(r => r.category === category);
   },
 
   async recent(limit = 8) {
-    const { data, error } = await sb.from("recipes").select("*").order("created_at", { ascending: false }).limit(limit);
-    if (error) throw error;
-    return data;
+    const all = await this.getAll();
+    return all.slice(0, limit);
   },
 
   async favorites() {
-    const { data, error } = await sb.from("recipes").select("*").eq("favorite", true).order("created_at", { ascending: false });
-    if (error) throw error;
-    return data;
+    const all = await this.getAll();
+    return all.filter(r => r.favorite === true);
   },
 
   async customRecipes(excludeId = null) {
-    let query = sb.from("recipes").select("id, title, category").eq("is_custom_recipe", true).order("title");
-    if (excludeId) query = query.neq("id", excludeId);
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
+    const all = await this.getAll();
+    return all
+      .filter(r => r.is_custom_recipe && r.id !== excludeId)
+      .map(r => ({ id: r.id, title: r.title, category: r.category }))
+      .sort((a, b) => a.title.localeCompare(b.title));
   },
 
   async toggleFavorite(id) {
@@ -99,8 +92,6 @@ const Storage = {
     return this.update(id, { favorite: !recipe.favorite });
   },
 
-  // Histórico de "já fiz essa receita" — cada marcação empilha um timestamp
-  // em cook_log, então dá pra saber quantas vezes e quando foi a última.
   async markCooked(id) {
     const recipe = await this.getById(id);
     if (!recipe) return;
@@ -108,7 +99,6 @@ const Storage = {
     return this.update(id, { cook_log: log });
   },
 
-  // Desfaz a última marcação (pra corrigir clique errado).
   async unmarkLastCooked(id) {
     const recipe = await this.getById(id);
     if (!recipe || !recipe.cook_log?.length) return;
@@ -116,8 +106,6 @@ const Storage = {
     return this.update(id, { cook_log: log });
   },
 
-  // Busca simples client-side (título, ingredientes, tags) — o volume de
-  // receitas de um app pessoal não justifica full-text search no banco.
   async search(term) {
     const t = term.trim().toLowerCase();
     if (!t) return [];
@@ -135,19 +123,17 @@ const Storage = {
     return JSON.stringify({ recipes, ingredientPrefs: prefs, exportedAt: new Date().toISOString() }, null, 2);
   },
 
-  // Importa um backup (gerado por este app) para a conta atualmente logada.
-  // Receitas antigas ganham novo id/user_id; preferências de ingredientes são mescladas.
   async importBackup(json) {
     const data = JSON.parse(json);
-    const user_id = await this._userId();
-
     if (Array.isArray(data.recipes) && data.recipes.length) {
-      const rows = data.recipes.map(r => {
-        const { id, user_id: _old, created_at, ...rest } = r;
-        return { ...rest, user_id };
-      });
-      const { error } = await sb.from("recipes").insert(rows);
-      if (error) throw error;
+      const recipes = this._getRecipes();
+      const imported = data.recipes.map(r => ({
+        ...r,
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        user_id: 'local-user',
+        created_at: r.created_at || new Date().toISOString()
+      }));
+      this._saveRecipes([...recipes, ...imported]);
     }
 
     if (data.ingredientPrefs) {
@@ -179,27 +165,27 @@ const CATEGORY_TO_INGREDIENT_TYPE = {
 };
 
 const Ingredients = {
-  async _getPrefsRow() {
-    // Modo sem autenticação - usa ID fixo
-    const user_id = 'local-user';
-
-    const { data, error } = await sb.from("ingredient_prefs").select("*").eq("user_id", user_id).maybeSingle();
-    if (error) throw error;
-    if (data) return data;
-
+  _getPrefsRow() {
+    const data = localStorage.getItem('ingredient_prefs');
+    if (data) return JSON.parse(data);
+    
     const defaults = {
-      user_id, custom_food: [], custom_drink: [], hidden_food: [], hidden_drink: [],
-      custom_food_groups: [], custom_drink_groups: []
+      user_id: 'local-user',
+      custom_food: [],
+      custom_drink: [],
+      hidden_food: [],
+      hidden_drink: [],
+      custom_food_groups: [],
+      custom_drink_groups: []
     };
-    const { data: created, error: insertError } = await sb.from("ingredient_prefs").insert(defaults).select().single();
-    if (insertError) throw insertError;
-    return created;
+    localStorage.setItem('ingredient_prefs', JSON.stringify(defaults));
+    return defaults;
   },
 
   async _savePrefsRow(patch) {
-    const user_id = await Storage._userId();
-    const { error } = await sb.from("ingredient_prefs").update(patch).eq("user_id", user_id);
-    if (error) throw error;
+    const current = this._getPrefsRow();
+    const updated = { ...current, ...patch };
+    localStorage.setItem('ingredient_prefs', JSON.stringify(updated));
   },
 
   // Mantém receitas-base marcadas como personalizadas disponíveis também na

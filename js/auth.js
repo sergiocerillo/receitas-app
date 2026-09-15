@@ -1,36 +1,17 @@
-// Camada fina sobre o Supabase Auth. O app usa uma única conta compartilhada
-// (SHARED_ACCOUNT_EMAIL, definida em js/config.js) por trás da tela de
-// login — quem acessa o app só vê e digita uma senha, nunca um e-mail.
+// Sistema local - sem autenticação necessária
 const Auth = {
-  async signInWithSitePassword(password) {
-    const { data, error } = await sb.auth.signInWithPassword({
-      email: SHARED_ACCOUNT_EMAIL,
-      password
-    });
-    if (error) throw error;
-    return data;
-  },
-
-  async signOut() {
-    await sb.auth.signOut();
-    window.location.href = "login.html";
+  async requireAuth() {
+    // Retorna usuário mock para compatibilidade com código existente
+    return { id: 'local-user', email: 'user@local' };
   },
 
   async getUser() {
-    const { data } = await sb.auth.getUser();
-    return data?.user || null;
-  },
-
-  // Chame no topo de toda página protegida: redireciona para o login se
-  // ninguém estiver autenticado.
-  async requireAuth() {
-    // Autenticação desativada - retorna usuário mock para permitir acesso livre
     return { id: 'local-user', email: 'user@local' };
   }
 };
 
-// Liga o botão de sair, quando a página tiver esse elemento.
+// Remove o botão de logout se existir, já que não é mais necessário
 async function initAuthNav() {
   const logoutBtn = document.getElementById("logout-btn");
-  if (logoutBtn) logoutBtn.addEventListener("click", () => Auth.signOut());
+  if (logoutBtn) logoutBtn.style.display = 'none';
 }
