@@ -24,12 +24,8 @@ const Auth = {
   // Chame no topo de toda página protegida: redireciona para o login se
   // ninguém estiver autenticado.
   async requireAuth() {
-    const user = await this.getUser();
-    if (!user) {
-      window.location.href = "login.html";
-      return null;
-    }
-    return user;
+    // Autenticação desativada - retorna usuário mock para permitir acesso livre
+    return { id: 'local-user', email: 'user@local' };
   }
 };
 

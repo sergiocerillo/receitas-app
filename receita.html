@@ -49,6 +49,7 @@
 <script src="js/translate.js"></script>
 <script>
   let recipe = null;
+  let multiplier = 1; // Multiplicador de porções
   const content = document.getElementById("content");
 
   function cookInfoHTML() {
@@ -103,9 +104,17 @@
       ${photoHTML}
 
       <div class="form-section">
-        <h2>Ingredientes</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h2 style="margin: 0;">Ingredientes</h2>
+          <div class="multiplier-control">
+            <button type="button" id="mult-1x" class="mult-btn active">1x</button>
+            <button type="button" id="mult-2x" class="mult-btn">2x</button>
+            <button type="button" id="mult-3x" class="mult-btn">3x</button>
+            <button type="button" id="mult-4x" class="mult-btn">4x</button>
+          </div>
+        </div>
         <ul class="detail-ingredients" id="ingredients-list">
-          ${recipe.ingredients.map(i => `<li><span>${ingredientNameHTML(i)}</span><span>${escapeHTML(formatQty(i))}</span></li>`).join("")}
+          ${renderIngredientsList()}
         </ul>
       </div>
 
@@ -118,6 +127,8 @@
 
       <p id="translate-status" class="picker-hint"></p>
     `;
+
+    bindMultiplierButtons();
 
     document.getElementById("delete-btn").addEventListener("click", async () => {
       if (confirm("Tem certeza que deseja excluir esta receita?")) {
@@ -158,6 +169,40 @@
     }
 
     document.getElementById("translate-btn").addEventListener("click", translateDetail);
+  }
+
+  function renderIngredientsList() {
+    return recipe.ingredients.map(i => {
+      const adjustedIngredient = {...i};
+      if (adjustedIngredient.amount && !isNaN(parseFloat(adjustedIngredient.amount))) {
+        adjustedIngredient.amount = (parseFloat(adjustedIngredient.amount) * multiplier).toString();
+      }
+      return `<li><span>${ingredientNameHTML(adjustedIngredient)}</span><span>${escapeHTML(formatQty(adjustedIngredient))}</span></li>`;
+    }).join("");
+  }
+
+  function bindMultiplierButtons() {
+    const buttons = {
+      'mult-1x': 1,
+      'mult-2x': 2,
+      'mult-3x': 3,
+      'mult-4x': 4
+    };
+
+    Object.entries(buttons).forEach(([id, mult]) => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.addEventListener('click', () => {
+          multiplier = mult;
+          // Remove active de todos
+          document.querySelectorAll('.mult-btn').forEach(b => b.classList.remove('active'));
+          // Adiciona active no clicado
+          btn.classList.add('active');
+          // Atualiza lista de ingredientes
+          document.getElementById('ingredients-list').innerHTML = renderIngredientsList();
+        });
+      }
+    });
   }
 
   function showToast(msg) {

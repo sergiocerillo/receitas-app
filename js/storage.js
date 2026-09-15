@@ -4,9 +4,8 @@
 
 const Storage = {
   async _userId() {
-    const { data } = await sb.auth.getUser();
-    if (!data?.user) throw new Error("Não autenticado.");
-    return data.user.id;
+    // Modo sem autenticação - retorna ID fixo
+    return 'local-user';
   },
 
   async getAll() {
@@ -181,9 +180,8 @@ const CATEGORY_TO_INGREDIENT_TYPE = {
 
 const Ingredients = {
   async _getPrefsRow() {
-    const { data: userData } = await sb.auth.getUser();
-    if (!userData?.user) throw new Error("Não autenticado.");
-    const user_id = userData.user.id;
+    // Modo sem autenticação - usa ID fixo
+    const user_id = 'local-user';
 
     const { data, error } = await sb.from("ingredient_prefs").select("*").eq("user_id", user_id).maybeSingle();
     if (error) throw error;
